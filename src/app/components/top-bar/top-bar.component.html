@@ -1,31 +1,85 @@
-<div class="flex justify-between items-center p-4 bg-white dark:bg-gray-900 shadow-md h-16 transition-all">
+<div
+    class="flex justify-between items-center p-4 bg-white dark:bg-gray-900 shadow-md h-16 transition-all relative z-40">
+    <!-- Left: Search -->
     <div class="flex items-center gap-2 relative">
-        <!-- Search Input -->
         <input type="text" placeholder="Search..."
             class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md pl-10 pr-3 py-1 w-80 transition-all" />
-
-        <!-- Search Icon inside input -->
         <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300">
             🔍
         </div>
     </div>
 
-
     <!-- Right: Icons and Avatar -->
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-6 relative">
+
         <!-- Chatbot Icon -->
-        <button (click)="toggleChat()" class="relative transform hover:scale-110 transition-transform">
-            <img src="assets/icons/chatbot-icon.png" alt="Chatbot" class="w-8 h-8 dark:invert">
-        </button>
+        <div class="relative flex flex-col items-center">
+            <button (click)="toggleChat()" class="relative transform hover:scale-110 transition-transform">
+                <img src="assets/icons/chatbot-icon.png" alt="Chatbot" class="w-8 h-8 dark:invert" />
+            </button>
+
+            <!-- Vertical Line + Chatbot Popup -->
+            <div *ngIf="isChatOpen" class="absolute top-12 flex flex-col items-center">
+                <div class="h-6 w-0.5 bg-blue-700 animate-grow"></div>
+
+                <div
+                    class="mt-2 w-96 bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden transition-all z-50">
+                    <div class="bg-blue-700 text-white font-bold text-sm px-4 py-2 text-center">
+                        INSIGHTS CENTER
+                    </div>
+                    <div class="p-4 flex flex-col gap-4">
+                        <div
+                            class="bg-blue-100 dark:bg-gray-700 p-3 rounded-lg text-gray-700 dark:text-gray-300 text-sm">
+                            Hi, this is Qlik Bot! How can I help you today?
+                        </div>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <button
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs transition-all">
+                                Cluster Production Months
+                            </button>
+                            <button
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs transition-all">
+                                Scrap Trend
+                            </button>
+                            <button
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs transition-all">
+                                Control Chart Measure 1
+                            </button>
+                        </div>
+                        <input type="text" placeholder="Ask me something..."
+                            class="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm w-full dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Alert Icon -->
-        <button (click)="toggleAlert()" class="relative transform hover:scale-110 transition-transform">
-            <img src="assets/icons/alert-icon.png" alt="Alerts" class="w-6 h-6 dark:invert">
-        </button>
+        <div class="relative flex flex-col items-center">
+            <button (click)="toggleAlert()" class="relative transform hover:scale-110 transition-transform">
+                <img src="assets/icons/alert-icon.png" alt="Alerts" class="w-6 h-6 dark:invert" />
+            </button>
+
+            <!-- Vertical Line + Alerts Popup -->
+            <div *ngIf="isAlertOpen" class="absolute top-12 flex flex-col items-center">
+                <div class="h-6 w-0.5 bg-blue-700 animate-grow"></div>
+
+                <div
+                    class="mt-2 w-80 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-2xl overflow-hidden transition-all z-50">
+                    <div class="bg-blue-700 text-white font-bold text-sm px-4 py-2 text-center">
+                        ALERTS CENTER
+                    </div>
+                    <div class="p-4 flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <div>🚨 % Daily Scrap above average</div>
+                        <div>🚨 Cycle Time above average</div>
+                        <div>🚨 % Scrap by Machine</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Messages Icon -->
         <button class="relative transform hover:scale-110 transition-transform">
-            <img src="assets/icons/message-icon.png" alt="Messages" class="w-6 h-6 dark:invert">
+            <img src="assets/icons/message-icon.png" alt="Messages" class="w-6 h-6 dark:invert" />
         </button>
 
         <!-- Dark Mode Toggle -->
@@ -37,25 +91,8 @@
         <!-- User Avatar -->
         <div class="flex items-center gap-2 transform hover:scale-105 transition-transform">
             <span class="text-gray-700 dark:text-white font-semibold">Jack</span>
-            <img src="assets/images/user-avatar.png" alt="User Avatar" class="w-8 h-8 rounded-full dark:invert">
+            <img src="assets/images/user-avatar.png" alt="User Avatar" class="w-8 h-8 rounded-full dark:invert" />
         </div>
+
     </div>
-</div>
-
-<!-- Chatbot Slide Panel -->
-<div *ngIf="isChatOpen"
-    class="fixed right-0 top-16 w-96 h-full bg-blue-100 dark:bg-gray-800 shadow-lg p-4 transition-all">
-    <h2 class="text-lg font-bold mb-2 dark:text-white">Qlik Bot</h2>
-    <p class="text-sm text-gray-700 dark:text-gray-300">How can I help you today?</p>
-</div>
-
-<!-- Alerts Dropdown -->
-<div *ngIf="isAlertOpen"
-    class="absolute right-28 top-16 w-80 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg p-4 transition-all">
-    <h3 class="text-md font-semibold mb-2 dark:text-white">Alerts Center</h3>
-    <ul class="space-y-2">
-        <li class="text-sm dark:text-gray-300">🚨 % Daily Scrap above average</li>
-        <li class="text-sm dark:text-gray-300">🚨 Cycle Time above average</li>
-        <li class="text-sm dark:text-gray-300">🚨 % Scrap by Machine</li>
-    </ul>
 </div>
