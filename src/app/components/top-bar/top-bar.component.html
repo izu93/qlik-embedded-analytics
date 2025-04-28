@@ -1,15 +1,21 @@
 <div class="flex justify-between items-center p-4 bg-white dark:bg-gray-900 shadow-md h-16 transition-all">
-    <!-- Left: Search -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 relative">
+        <!-- Search Input -->
         <input type="text" placeholder="Search..."
-            class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 w-80 transition-all" />
+            class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md pl-10 pr-3 py-1 w-80 transition-all" />
+
+        <!-- Search Icon inside input -->
+        <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300">
+            🔍
+        </div>
     </div>
+
 
     <!-- Right: Icons and Avatar -->
     <div class="flex items-center gap-6">
         <!-- Chatbot Icon -->
         <button (click)="toggleChat()" class="relative transform hover:scale-110 transition-transform">
-            <img src="assets/icons/chatbot-icon.png" alt="Chatbot" class="w-6 h-6 dark:invert">
+            <img src="assets/icons/chatbot-icon.png" alt="Chatbot" class="w-8 h-8 dark:invert">
         </button>
 
         <!-- Alert Icon -->
