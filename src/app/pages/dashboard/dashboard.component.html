@@ -2,43 +2,39 @@
 
     <!-- KPI Cards Row -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+        <div *ngFor="let kpi of kpiList"
+            class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-xl transition-all border-l-4"
+            [ngClass]="kpi.borderColor">
 
-        <!-- Card 1 -->
-        <div class="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-lg transition-all">
-            <div class="absolute left-0 top-0 h-full w-1 bg-gray-400 dark:bg-gray-600 rounded-l-lg"></div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Total Revenue</h3>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">$120K</p>
+            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                {{ kpi.label }}
+            </h3>
+            <p class="text-2xl font-bold" [ngClass]="kpi.color">
+                {{ kpi.value }}
+            </p>
+
         </div>
-
-        <!-- Card 2 -->
-        <div class="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-lg transition-all">
-            <div class="absolute left-0 top-0 h-full w-1 bg-gray-400 dark:bg-gray-600 rounded-l-lg"></div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Active Users</h3>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">4,350</p>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-lg transition-all">
-            <div class="absolute left-0 top-0 h-full w-1 bg-gray-400 dark:bg-gray-600 rounded-l-lg"></div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Churn Rate</h3>
-            <p class="text-2xl font-bold text-red-500">2.5%</p>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="relative bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-lg transition-all">
-            <div class="absolute left-0 top-0 h-full w-1 bg-gray-400 dark:bg-gray-600 rounded-l-lg"></div>
-            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">New Signups</h3>
-            <p class="text-2xl font-bold text-green-500">850</p>
-        </div>
-
     </div>
 
-    <!-- Chart Section Placeholder -->
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-lg transition-all">
-        <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-4">Analytics Overview</h2>
-        <div class="h-80 flex items-center justify-center text-gray-400 dark:text-gray-600">
-            [ Insert Charts or Visualizations Here ]
+    <!-- Charts Section Placeholder -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Chart 1 Placeholder -->
+        <div
+            class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-xl transition-all h-80 flex flex-col items-center justify-center">
+            <span class="text-gray-400 dark:text-gray-500 text-center">
+                [ Insert Sales Trend Chart Here ]
+            </span>
         </div>
+
+        <!-- Chart 2 Placeholder -->
+        <div
+            class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-xl transition-all h-80 flex flex-col items-center justify-center">
+            <span class="text-gray-400 dark:text-gray-500 text-center">
+                [ Insert Churn Analysis Chart Here ]
+            </span>
+        </div>
+
     </div>
 
 </div>
