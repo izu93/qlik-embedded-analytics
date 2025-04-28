@@ -1,2 +1,10 @@
-<app-top-bar></app-top-bar>
-<router-outlet></router-outlet>
+<div class="flex">
+  <!-- Sidebar -->
+  <app-side-nav></app-side-nav>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col">
+    <app-top-bar></app-top-bar>
+    <router-outlet></router-outlet>
+  </div>
+</div>
