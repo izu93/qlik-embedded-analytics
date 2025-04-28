@@ -1,0 +1,55 @@
+<div class="flex justify-between items-center p-4 bg-white dark:bg-gray-900 shadow-md h-16 transition-all">
+    <!-- Left: Search -->
+    <div class="flex items-center gap-2">
+        <input type="text" placeholder="Search..."
+            class="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-1 w-80 transition-all" />
+    </div>
+
+    <!-- Right: Icons and Avatar -->
+    <div class="flex items-center gap-6">
+        <!-- Chatbot Icon -->
+        <button (click)="toggleChat()" class="relative transform hover:scale-110 transition-transform">
+            <img src="assets/icons/chatbot-icon.png" alt="Chatbot" class="w-6 h-6 dark:invert">
+        </button>
+
+        <!-- Alert Icon -->
+        <button (click)="toggleAlert()" class="relative transform hover:scale-110 transition-transform">
+            <img src="assets/icons/alert-icon.png" alt="Alerts" class="w-6 h-6 dark:invert">
+        </button>
+
+        <!-- Messages Icon -->
+        <button class="relative transform hover:scale-110 transition-transform">
+            <img src="assets/icons/message-icon.png" alt="Messages" class="w-6 h-6 dark:invert">
+        </button>
+
+        <!-- Dark Mode Toggle -->
+        <button (click)="toggleDarkMode()" class="relative transform hover:scale-110 transition-transform">
+            <span *ngIf="!isDarkMode" class="text-xl">🌙</span>
+            <span *ngIf="isDarkMode" class="text-xl">☀️</span>
+        </button>
+
+        <!-- User Avatar -->
+        <div class="flex items-center gap-2 transform hover:scale-105 transition-transform">
+            <span class="text-gray-700 dark:text-white font-semibold">Jack</span>
+            <img src="assets/images/user-avatar.png" alt="User Avatar" class="w-8 h-8 rounded-full dark:invert">
+        </div>
+    </div>
+</div>
+
+<!-- Chatbot Slide Panel -->
+<div *ngIf="isChatOpen"
+    class="fixed right-0 top-16 w-96 h-full bg-blue-100 dark:bg-gray-800 shadow-lg p-4 transition-all">
+    <h2 class="text-lg font-bold mb-2 dark:text-white">Qlik Bot</h2>
+    <p class="text-sm text-gray-700 dark:text-gray-300">How can I help you today?</p>
+</div>
+
+<!-- Alerts Dropdown -->
+<div *ngIf="isAlertOpen"
+    class="absolute right-28 top-16 w-80 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg p-4 transition-all">
+    <h3 class="text-md font-semibold mb-2 dark:text-white">Alerts Center</h3>
+    <ul class="space-y-2">
+        <li class="text-sm dark:text-gray-300">🚨 % Daily Scrap above average</li>
+        <li class="text-sm dark:text-gray-300">🚨 Cycle Time above average</li>
+        <li class="text-sm dark:text-gray-300">🚨 % Scrap by Machine</li>
+    </ul>
+</div>
