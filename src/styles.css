@@ -16,7 +16,6 @@
     animation: grow 0.3s ease-out forwards;
 }
 
-/* ✨ New: Fade In Animation */
 @keyframes fadeIn {
     from {
         opacity: 0;
