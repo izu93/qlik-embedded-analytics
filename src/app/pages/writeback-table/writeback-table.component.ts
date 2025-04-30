@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { QlikAPIService } from '../../services/qlik-api.service';
 
 @Component({
   selector: 'app-writeback-table',
@@ -26,6 +27,29 @@ export class WritebackTableComponent {
   //Sorting logic
   sortColumn: keyof (typeof this.writebackData)[0] | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Qlik data storage for testing
+  masterDimensions: any[] = [];
+  masterMeasures: any[] = [];
+  allFields: any[] = [];
+
+  constructor(private qlikService: QlikAPIService) { }
+
+  ngOnInit(): void {
+    // Load Qlik metadata from service when component initializes (browser only)
+    this.qlikService.getAppData().then(data => {
+      console.log('Qlik App Data (Full):', data); // Debug output of full Qlik response
+
+      // Store metadata locally for use in dropdowns or table configs
+      this.masterDimensions = data.dimensions;
+      this.masterMeasures = data.measures;
+      this.allFields = data.allFields;
+
+    }).catch(err => {
+      console.error('Error fetching Qlik app data:', err);
+    });
+  }
+
   // Mock data: Replace with backend integration later
   writebackData = [
     {
