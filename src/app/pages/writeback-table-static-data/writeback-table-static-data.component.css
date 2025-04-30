@@ -1,0 +1,47 @@
+/*  Glow animation for edited rows */
+@keyframes glowEdited {
+    from {
+        background-color: #e9dcff;
+        /* Light yellow */
+    }
+
+    to {
+        background-color: #4447eb;
+        /* Softer yellow */
+    }
+}
+
+.row-edited {
+    animation: glowEdited 0.6s ease-in-out;
+    background-color: #c3d6fe !important;
+}
+
+/* Subtle saved row green highlight */
+.row-saved {
+    animation: flash-green 1.5s ease-out;
+}
+
+@keyframes flash-green {
+    0% {
+        background-color: #d1fae5;
+        /* light green */
+    }
+
+    100% {
+        background-color: inherit;
+    }
+}
+
+tr {
+    transition: background-color 0.3s ease;
+}
+
+th {
+    user-select: none;
+}
+
+th span {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+    color: #6b7280;
+}
