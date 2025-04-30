@@ -4,6 +4,21 @@
     <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
         Writeback Table — Churn Insights
     </h2>
+    <!-- Qlik Field Selector -->
+    <!--Show all Qlik fields (from allFields)-->
+    <div style="margin-bottom: 1rem;">
+        <label for="fieldDropdown"><strong>Select a Qlik Field:</strong></label>
+        <select id="fieldDropdown" [(ngModel)]="selectedField">
+            <option value="">-- Choose Field --</option>
+            <option *ngFor="let field of allFields" [value]="field.name">
+                {{ field.name }}
+            </option>
+        </select>
+
+        <div *ngIf="selectedField" style="margin-top: 0.5rem;">
+            <em>Selected Field:</em> {{ selectedField }}
+        </div>
+    </div>
 
     <!--  Search bar and  Export buttons -->
     <div class="flex justify-between items-center mb-4">

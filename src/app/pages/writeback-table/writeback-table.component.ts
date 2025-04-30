@@ -34,6 +34,8 @@ export class WritebackTableComponent {
   allFields: any[] = [];
 
   constructor(private qlikService: QlikAPIService) { }
+  
+  selectedField: string = ''; // stores selected field name
 
   ngOnInit(): void {
     // Load Qlik metadata from service when component initializes (browser only)
