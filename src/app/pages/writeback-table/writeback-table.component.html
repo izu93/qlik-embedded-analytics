@@ -1,176 +1,254 @@
 <div class="p-6 bg-gray-100 dark:bg-gray-800 min-h-screen">
-    <!-- Title Header -->
-    <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
-        Writeback Table — Churn Insights
-    </h2>
+  <!-- Title Header -->
+  <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
+    Writeback Table — Churn Insights
+  </h2>
 
-    <!-- Search bar and export buttons -->
-    <div class="flex justify-between items-center mb-4">
-        <!-- Search input with clear button -->
-        <div class="relative w-72 focus-within:w-96 transition-all duration-300">
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Search..."
-                class="transition-all duration-100 px-4 py-2 pr-8 rounded border text-sm w-full dark:bg-gray-700 dark:text-white focus:w-[100%]" />
-            <button *ngIf="searchTerm" (click)="searchTerm = ''"
-                class="absolute right-2 top-2 text-gray-500 hover:text-black dark:hover:text-white"
-                aria-label="Clear search">
-                ×
-            </button>
-        </div>
-
-        <!-- CSV and JSON export buttons -->
-        <div class="flex gap-2 ml-4">
-            <button (click)="exportToCSV()"
-                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">CSV</button>
-            <button (click)="exportToJSON()"
-                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">JSON</button>
-        </div>
+  <!-- Search bar and export buttons -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Search input with clear button -->
+    <div class="relative w-72 focus-within:w-96 transition-all duration-300">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Search..."
+        class="transition-all duration-100 px-4 py-2 pr-8 rounded border text-sm w-full dark:bg-gray-700 dark:text-white focus:w-[100%]"
+      />
+      <button
+        *ngIf="searchTerm"
+        (click)="searchTerm = ''"
+        class="absolute right-2 top-2 text-gray-500 hover:text-black dark:hover:text-white"
+        aria-label="Clear search"
+      >
+        ×
+      </button>
     </div>
 
-    <!-- Table container -->
-    <div class="overflow-x-auto rounded-lg shadow">
-        <table class="min-w-full bg-white dark:bg-gray-900">
-            <!-- Table header -->
-            <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase">
-                <tr>
-                    <!-- Dynamically render column headers with sorting -->
-                    <th *ngFor="let col of columnsToShow"
-                        class="px-4 py-2 text-left cursor-pointer select-none border-r border-gray-300"
-                        (click)="setSort(col.field)">
-                        {{ col.label }}
-                        <span class="ml-1 text-gray-400"
-                            [ngClass]="{ 'text-gray-900 font-semibold': sortColumn === col.field }">
-                            <span *ngIf="sortColumn === col.field">
-                                <span *ngIf="sortDirection === 'asc'">▲</span>
-                                <span *ngIf="sortDirection === 'desc'">▼</span>
-                            </span>
-                        </span>
-                    </th>
-                    <th class="px-4 py-2 text-center">Reset</th>
-                </tr>
-            </thead>
-
-            <!-- Table body -->
-            <tbody>
-                <tr *ngFor="let row of pagedRows" [ngClass]="{
-                    'border-b hover:bg-gray-100 dark:hover:bg-gray-800 even:bg-gray-50 text-sm': true,
-                    'row-edited': row.changed,
-                    'row-saved': rowSaved.includes(row['Account ID'])
-                }">
-
-                    <!-- Iterate over columns and apply custom rendering logic -->
-                    <td *ngFor="let col of columnsToShow" class="px-4 py-2 border-r border-gray-200">
-
-                        <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
-                        <ng-container *ngIf="col.field === 'Churned_predicted'; else defaultCell">
-                            <span class="relative group inline-block cursor-pointer">
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold text-white" [ngClass]="getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row, col.field)?.toLowerCase() === 'yes'
-                                        ? 'bg-red-500'
-                                        : 'bg-green-500'">
-                                    {{ getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row,
-                                    col.field)?.toLowerCase() === 'yes'
-                                    ? 'Churn'
-                                    : 'No Churn' }}
-                                </span>
-                                <span
-                                    class="absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 text-xs text-white bg-black bg-opacity-75 px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                    {{ getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row,
-                                    col.field)?.toLowerCase() === 'yes'
-                                    ? 'High churn risk'
-                                    : 'Stable customer' }}
-                                    <span
-                                        class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-100 rotate-45"></span>
-                                </span>
-                            </span>
-                        </ng-container>
-
-                        <!-- Fallback/default rendering logic -->
-                        <ng-template #defaultCell>
-
-                            <!-- Progress bar for 'Probability of Churn' -->
-                            <ng-container *ngIf="col.field === 'ProbabilityOfChurn'; else statusCheck">
-                                <div class="w-full">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-full h-2 rounded bg-gray-200 dark:bg-gray-700">
-                                            <div class="h-full rounded" [ngClass]="{
-                                                'bg-green-500': parseInt(getValue(row, col.field)) <= 30,
-                                                'bg-yellow-500': parseInt(getValue(row, col.field)) > 30 && parseInt(getValue(row, col.field)) <= 70,
-                                                'bg-red-500': parseInt(getValue(row, col.field)) > 70
-                                            }" [style.width.%]="parseInt(getValue(row, col.field))">
-                                            </div>
-                                        </div>
-                                        <span class="text-xs font-medium text-gray-800 dark:text-white">
-                                            {{ getValue(row, col.field) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </ng-container>
-
-                            <!-- Dropdown with warning for missing status -->
-                            <ng-template #statusCheck>
-                                <ng-container *ngIf="col.field === 'Status'; else rawValue">
-                                    <div class="relative group w-full">
-                                        <select [(ngModel)]="row[col.field]"
-                                            (ngModelChange)="markChanged(row, col.field)"
-                                            class="w-full rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
-                                            [ngClass]="{
-                                                'border border-yellow-500': !row[col.field],
-                                                'bg-white dark:bg-gray-700': true
-                                            }">
-                                            <option [ngValue]="null">—</option>
-                                            <option value="Approve">Approve</option>
-                                            <option value="Reject">Reject</option>
-                                        </select>
-                                        <span *ngIf="!row[col.field]"
-                                            class="absolute top-full mt-1 left-0 text-xs text-yellow-600 bg-white dark:bg-gray-900 px-2 py-1 rounded shadow z-10">
-                                            Please update status
-                                        </span>
-                                    </div>
-                                </ng-container>
-                            </ng-template>
-
-                            <!-- Final fallback if no special formatting is needed -->
-                            <ng-template #rawValue>
-                                {{ getValue(row, col.field) }}
-                            </ng-template>
-
-                        </ng-template>
-
-                    </td>
-
-                    <!-- Reset button column -->
-                    <td class="px-4 py-2 border-r border-gray-200 text-center">
-                        <ng-container *ngIf="rowSaved.includes(row['Account ID']); else resetBtn">
-                            <span class="text-green-600 font-bold text-sm">✔</span>
-                        </ng-container>
-                        <ng-template #resetBtn>
-                            <button (click)="resetRow(row)" [disabled]="!row.changed"
-                                class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40">
-                                Reset
-                            </button>
-                        </ng-template>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- CSV and JSON export buttons -->
+    <div class="flex gap-2 ml-4">
+      <button
+        (click)="exportToCSV()"
+        class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1"
+      >
+        CSV
+      </button>
+      <button
+        (click)="exportToJSON()"
+        class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1"
+      >
+        JSON
+      </button>
     </div>
+  </div>
 
-    <!-- Footer with pagination and save button -->
-    <div class="flex justify-between items-center mt-6">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredRows.length) }} of
-            {{ filteredRows.length }}
-        </p>
-        <div class="flex gap-4 items-center">
-            <button (click)="previousPage()" [disabled]="currentPage === 1"
-                class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">← Prev</button>
-            <span class="text-sm">{{ currentPage }}</span>
-            <button (click)="nextPage()" [disabled]="currentPage * pageSize >= filteredRows.length"
-                class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">Next →</button>
-            <button (click)="saveChanges()" [disabled]="!hasChanges() || isSaving"
-                class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all">
-                <span *ngIf="!isSaving">Save All Changes</span>
-                <span *ngIf="isSaving">Saving...</span>
-            </button>
-        </div>
+  <!-- Table container -->
+  <div class="overflow-x-auto rounded-lg shadow">
+    <table class="min-w-full bg-white dark:bg-gray-900">
+      <!-- Table header -->
+      <thead
+        class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase"
+      >
+        <tr>
+          <!-- Dynamically render column headers with sorting -->
+          <th
+            *ngFor="let col of columnsToShow"
+            class="px-4 py-2 text-left cursor-pointer select-none border-r border-gray-300"
+            (click)="setSort(col.field)"
+          >
+            {{ col.label }}
+            <span
+              class="ml-1 text-gray-400"
+              [ngClass]="{
+                'text-gray-900 font-semibold': sortColumn === col.field
+              }"
+            >
+              <span *ngIf="sortColumn === col.field">
+                <span *ngIf="sortDirection === 'asc'">▲</span>
+                <span *ngIf="sortDirection === 'desc'">▼</span>
+              </span>
+            </span>
+          </th>
+          <th class="px-4 py-2 text-center">Reset</th>
+        </tr>
+      </thead>
+
+      <!-- Table body -->
+      <tbody>
+        <tr
+          *ngFor="let row of pagedRows"
+          [ngClass]="{
+            'border-b hover:bg-gray-100 dark:hover:bg-gray-800 even:bg-gray-50 text-sm': true,
+            'row-edited': row.changed,
+            'row-saved': rowSaved.includes(row['Account ID'])
+          }"
+        >
+          <!-- Iterate over columns and apply custom rendering logic -->
+          <td
+            *ngFor="let col of columnsToShow"
+            class="px-4 py-2 border-r border-gray-200"
+          >
+            <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
+            <ng-container
+              *ngIf="col.field === 'Churned_predicted'; else defaultCell"
+            >
+              <span class="relative group inline-block cursor-pointer">
+                <span
+                  class="px-2 py-1 rounded-full text-xs font-semibold text-white"
+                  [ngClass]="
+                    getValue(row, col.field)?.toLowerCase() === 'churn' ||
+                    getValue(row, col.field)?.toLowerCase() === 'yes'
+                      ? 'bg-red-500'
+                      : 'bg-green-500'
+                  "
+                >
+                  {{
+                    getValue(row, col.field)?.toLowerCase() === "churn" ||
+                    getValue(row, col.field)?.toLowerCase() === "yes"
+                      ? "Churn"
+                      : "No Churn"
+                  }}
+                </span>
+                <span
+                  class="absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 text-xs text-white bg-black bg-opacity-75 px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"
+                >
+                  {{
+                    getValue(row, col.field)?.toLowerCase() === "churn" ||
+                    getValue(row, col.field)?.toLowerCase() === "yes"
+                      ? "High churn risk"
+                      : "Stable customer"
+                  }}
+                  <span
+                    class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-100 rotate-45"
+                  ></span>
+                </span>
+              </span>
+            </ng-container>
+
+            <!-- Fallback/default rendering logic -->
+            <ng-template #defaultCell>
+              <!-- Progress bar for 'Probability of Churn' -->
+              <ng-container
+                *ngIf="col.field === 'ProbabilityOfChurn'; else statusCheck"
+              >
+                <div class="w-full">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-full h-2 rounded bg-gray-200 dark:bg-gray-700"
+                    >
+                      <div
+                        class="h-full rounded"
+                        [ngClass]="{
+                          'bg-green-500':
+                            parseInt(getValue(row, col.field)) <= 30,
+                          'bg-yellow-500':
+                            parseInt(getValue(row, col.field)) > 30 &&
+                            parseInt(getValue(row, col.field)) <= 70,
+                          'bg-red-500': parseInt(getValue(row, col.field)) > 70
+                        }"
+                        [style.width.%]="parseInt(getValue(row, col.field))"
+                      ></div>
+                    </div>
+                    <span
+                      class="text-xs font-medium text-gray-800 dark:text-white"
+                    >
+                      {{ getValue(row, col.field) }}
+                    </span>
+                  </div>
+                </div>
+              </ng-container>
+
+              <!-- Dropdown with warning for missing status -->
+              <ng-template #statusCheck>
+                <ng-container *ngIf="col.field === 'Status'; else rawValue">
+                  <div class="relative group w-full">
+                    <select
+                      [(ngModel)]="row[col.field]"
+                      (ngModelChange)="markChanged(row, col.field)"
+                      class="w-full rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
+                      [ngClass]="{
+                        'border border-yellow-500': !row[col.field],
+                        'bg-white dark:bg-gray-700': true
+                      }"
+                    >
+                      <option [ngValue]="null" class="disabled selected">
+                        Select...
+                      </option>
+                      <option value="Approve">👍 Approve</option>
+                      <option value="Reject">👎 Reject</option>
+                      <option value="null">N/A</option>
+                    </select>
+                    <span
+                      *ngIf="!row[col.field]"
+                      class="absolute top-full mt-1 left-0 text-xs text-yellow-600 bg-white dark:bg-gray-900 px-2 py-1 rounded shadow z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      Please update status
+                    </span>
+                  </div>
+                </ng-container>
+              </ng-template>
+
+              <!-- Final fallback if no special formatting is needed -->
+              <ng-template #rawValue>
+                {{ getValue(row, col.field) }}
+              </ng-template>
+            </ng-template>
+          </td>
+
+          <!-- Reset button column -->
+          <td class="px-4 py-2 border-r border-gray-200 text-center">
+            <ng-container
+              *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
+            >
+              <span class="text-green-600 font-bold text-sm">✔</span>
+            </ng-container>
+            <ng-template #resetBtn>
+              <button
+                (click)="resetRow(row)"
+                [disabled]="!row.changed"
+                class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
+              >
+                Reset
+              </button>
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer with pagination and save button -->
+  <div class="flex justify-between items-center mt-6">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Showing {{ (currentPage - 1) * pageSize + 1 }}–{{
+        min(currentPage * pageSize, filteredRows.length)
+      }}
+      of
+      {{ filteredRows.length }}
+    </p>
+    <div class="flex gap-4 items-center">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50"
+      >
+        ← Prev
+      </button>
+      <span class="text-sm">{{ currentPage }}</span>
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage * pageSize >= filteredRows.length"
+        class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50"
+      >
+        Next →
+      </button>
+      <button
+        (click)="saveChanges()"
+        [disabled]="!hasChanges() || isSaving"
+        class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all"
+      >
+        <span *ngIf="!isSaving">Save All Changes</span>
+        <span *ngIf="isSaving">Saving...</span>
+      </button>
     </div>
+  </div>
 </div>
