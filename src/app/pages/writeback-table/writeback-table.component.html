@@ -1,116 +1,78 @@
-<!-- Outer container with padding and background -->
 <div class="p-6 bg-gray-100 dark:bg-gray-800 min-h-screen">
-    <!-- Title -->
     <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
-        Writeback Table — Churn Insights
+      Writeback Table — Churn Insights
     </h2>
-
-    <!-- Qlik Field Selector -->
-    <!-- Show all Qlik fields (from allFields) -->
-    <div style="margin-bottom: 1rem;">
-        <label for="fieldDropdown"><strong>Select a Qlik Field:</strong></label>
-        <select id="fieldDropdown" [(ngModel)]="selectedField">
-            <option value="">-- Choose Field --</option>
-            <option *ngFor="let field of allFields" [value]="field.name">
-                {{ field.name }}
-            </option>
-        </select>
-
-        <div *ngIf="selectedField" style="margin-top: 0.5rem;">
-            <em>Selected Field:</em> {{ selectedField }}
-        </div>
-    </div>
-
-    <!-- Search bar and Export buttons -->
+  
     <div class="flex justify-between items-center mb-4">
-        <!-- Search input with dynamic clear button -->
-        <div class="relative w-72 focus-within:w-96 transition-all duration-300">
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Search..."
-                class="transition-all duration-100 px-4 py-2 pr-8 rounded border text-sm w-full dark:bg-gray-700 dark:text-white focus:w-[100%]" />
-            <button *ngIf="searchTerm" (click)="searchTerm = ''"
-                class="absolute right-2 top-2 text-gray-500 hover:text-black dark:hover:text-white"
-                aria-label="Clear search">
-                ×
-            </button>
-        </div>
-
-        <!-- Export buttons -->
-        <div class="flex gap-2 ml-4">
-            <button (click)="exportToCSV()"
-                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">
-                <span class="hidden sm:inline">CSV</span>
-            </button>
-            <button (click)="exportToJSON()"
-                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">
-                <span class="hidden sm:inline">JSON</span>
-            </button>
-        </div>
+      <div class="relative w-72 focus-within:w-96 transition-all duration-300">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search..."
+          class="transition-all duration-100 px-4 py-2 pr-8 rounded border text-sm w-full dark:bg-gray-700 dark:text-white focus:w-[100%]" />
+        <button *ngIf="searchTerm" (click)="searchTerm = ''"
+          class="absolute right-2 top-2 text-gray-500 hover:text-black dark:hover:text-white" aria-label="Clear search">
+          ×
+        </button>
+      </div>
+  
+      <div class="flex gap-2 ml-4">
+        <button (click)="exportToCSV()"
+          class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">CSV</button>
+        <button (click)="exportToJSON()"
+          class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 flex items-center gap-1">JSON</button>
+      </div>
     </div>
-
-    <!-- Table Container -->
+  
     <div class="overflow-x-auto rounded-lg shadow">
-        <table class="min-w-full bg-white dark:bg-gray-900">
-            <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase">
-                <tr>
-                    <!-- Render columns dynamically -->
-                    <th *ngFor="let col of columnsToShow" class="px-4 py-2 text-left border-r border-gray-300">
-                        {{ col.name }}
-                    </th>
-                    <th class="px-4 py-2 text-center">Reset</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let row of pagedRows" [ngClass]="{
-                        'border-b hover:bg-gray-100 dark:hover:bg-gray-800 even:bg-gray-50 text-sm': true,
-                        'row-edited': row.changed,
-                        'row-saved': rowSaved.includes(row.AccountID)
-                    }">
-                    <td *ngFor="let col of columnsToShow" class="px-4 py-2 border-r border-gray-200">
-                        <input *ngIf="col.name === 'ServiceRating' || col.name === 'NumberOfPenalties'"
-                            [ngModel]="getValue(row, col.name)" (ngModelChange)="setValue(row, col.name, $event)"
-                            class="w-full rounded border px-2 py-1 text-sm dark:bg-gray-700 dark:text-white" />
-                        <span *ngIf="col.name !== 'ServiceRating' && col.name !== 'NumberOfPenalties'">
-                            {{ getValue(row, col.name) }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 border-r border-gray-200 text-center">
-                        <ng-container *ngIf="rowSaved.includes(row.AccountID); else resetBtn">
-                            <span class="text-green-600 font-bold text-sm">✔</span>
-                        </ng-container>
-                        <ng-template #resetBtn>
-                            <button (click)="resetRow(row)" [disabled]="!row.changed"
-                                class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40">
-                                Reset
-                            </button>
-                        </ng-template>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+      <table class="min-w-full bg-white dark:bg-gray-900">
+        <thead class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase">
+          <tr>
+            <th *ngFor="let col of columnsToShow" class="px-4 py-2 text-left border-r border-gray-300">
+              {{ col.label }}
+            </th>
+            <th class="px-4 py-2 text-center">Reset</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of pagedRows" [ngClass]="{
+              'border-b hover:bg-gray-100 dark:hover:bg-gray-800 even:bg-gray-50 text-sm': true,
+              'row-edited': row.changed,
+              'row-saved': rowSaved.includes(row['Account ID'])
+            }">
+            <td *ngFor="let col of columnsToShow" class="px-4 py-2 border-r border-gray-200">
+              {{ getValue(row, col.field) }}
+            </td>
+            <td class="px-4 py-2 border-r border-gray-200 text-center">
+              <ng-container *ngIf="rowSaved.includes(row['Account ID']); else resetBtn">
+                <span class="text-green-600 font-bold text-sm">✔</span>
+              </ng-container>
+              <ng-template #resetBtn>
+                <button (click)="resetRow(row)" [disabled]="!row.changed"
+                  class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40">
+                  Reset
+                </button>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
-    <!-- Pagination + Save Action -->
+  
     <div class="flex justify-between items-center mt-6">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-            Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredRows.length) }} of
-            {{ filteredRows.length }}
-        </p>
-
-        <div class="flex gap-4 items-center">
-            <button (click)="previousPage()" [disabled]="currentPage === 1"
-                class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">
-                ← Prev
-            </button>
-            <span class="text-sm">{{ currentPage }}</span>
-            <button (click)="nextPage()" [disabled]="currentPage * pageSize >= filteredRows.length"
-                class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">
-                Next →
-            </button>
-            <button (click)="saveChanges()" [disabled]="!hasChanges() || isSaving"
-                class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all">
-                <span *ngIf="!isSaving"> Save All Changes</span>
-                <span *ngIf="isSaving"> Saving...</span>
-            </button>
-        </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredRows.length) }} of
+        {{ filteredRows.length }}
+      </p>
+      <div class="flex gap-4 items-center">
+        <button (click)="previousPage()" [disabled]="currentPage === 1"
+          class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">← Prev</button>
+        <span class="text-sm">{{ currentPage }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage * pageSize >= filteredRows.length"
+          class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50">Next →</button>
+        <button (click)="saveChanges()" [disabled]="!hasChanges() || isSaving"
+          class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all">
+          <span *ngIf="!isSaving"> Save All Changes</span>
+          <span *ngIf="isSaving"> Saving...</span>
+        </button>
+      </div>
     </div>
-</div>
+  </div>
+  

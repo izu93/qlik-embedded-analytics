@@ -18,108 +18,70 @@ export class WritebackTableComponent {
   rowSaved: string[] = [];
   isSaving = false;
   touchedFields = new Set<string>();
-  sortColumn: string | null = null;
-  sortDirection: 'asc' | 'desc' = 'asc';
 
-  masterDimensions: any[] = [];
-  masterMeasures: any[] = [];
-  allFields: any[] = [];
-  columnsToShow: any[] = [];
-  selectedField: string = '';
+  columnsToShow = [
+    { label: 'Account ID', field: 'AccountID' },
+    { label: 'Predicted to Churn?', field: 'Churned_predicted' },
+    { label: 'Probability of Churn', field: 'ProbabilityOfChurn' },
+    { label: 'Base Fee', field: 'BaseFee' },
+    { label: 'Has Renewed', field: 'HasRenewed' },
+    { label: 'Plan Type', field: 'PlanType' }
+  ];
+
   writebackData: any[] = [];
   originalData: any[] = [];
 
   readonly appId = '615ed533-b2d0-48cc-8d43-db57cd809305';
-  readonly objectId = 'pjpWn'; // Your actual Qlik table object ID
+  readonly objectId = 'GXQNmr';
 
   constructor(private qlikService: QlikAPIService) { }
 
   ngOnInit(): void {
-    if (typeof window === 'undefined') {
-      console.warn('Skipping data load on server.');
-      return;
-    }
+    if (typeof window === 'undefined') return;
 
-    this.qlikService.getAppData()
-      .then(data => {
-        this.masterDimensions = data.dimensions;
-        this.masterMeasures = data.measures;
-        this.allFields = data.allFields;
-
-        this.columnsToShow = this.allFields.filter(field =>
-          field.cardinal > 1 &&
-          !field.name.startsWith('auto') &&
-          field.name !== 'Churned_no'
-        );
-
-        this.columnsToShow = this.columnsToShow.filter(f => !!f?.name && typeof f.name === 'string');
-
-        return this.qlikService.getObjectData(this.objectId, this.appId);
-      })
+    this.qlikService.getObjectData(this.objectId, this.appId)
       .then(rows => {
         if (!rows) return;
 
         this.writebackData = rows.map(row => ({
-          ...row,
-          ServiceRating: '',
-          NumberOfPenalties: Number(row['NumberOfPenalties']) || 0,
+          AccountID: row['Account ID'] ?? '',
+          Churned_predicted: row['Predicted to Churn?'] ?? '',
+          ProbabilityOfChurn: row['Probability of Churn'] ?? '',
+          BaseFee: row['Base Fee'] ?? '',
+          HasRenewed: row['HasRenewed'] ?? '',
+          PlanType: row['PlanType'] ?? '',
           changed: false
         }));
 
-        console.log('Populated rows from object:', this.writebackData);
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+        console.log('✅ Final mapped rows (normalized):', this.writebackData);
       })
-      .catch(err => {
-        console.error('Error loading Qlik data:', err);
-      });
+      .catch(err => console.error('❌ Error loading Qlik data:', err));
   }
 
   markChanged(row: any, field?: string) {
     row.changed = true;
-    if (field) {
-      this.touchedFields.add(`${row.AccountID}_${field}`);
-    }
+    if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
   }
 
-  isFeedbackInvalid(row: any): boolean {
-    return row.changed && !row.ServiceRating?.trim() && this.touchedFields.has(`${row.AccountID}_ServiceRating`);
+  getValue(row: any, key: string): any {
+    return row[key];
   }
 
-  isStatusPending(row: any): boolean {
-    return row.changed && row.status === 'Pending' && this.touchedFields.has(`${row.AccountID}_status`);
-  }
-
-  setSort(column: string) {
-    if (this.sortColumn === column) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortColumn = column;
-      this.sortDirection = 'asc';
-    }
+  setValue(row: any, key: string, value: any): void {
+    row[key] = value;
+    this.markChanged(row, key);
   }
 
   get filteredRows() {
     const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.writebackData;
-    return this.writebackData.filter(row =>
+    return !term ? this.writebackData : this.writebackData.filter(row =>
       Object.values(row).some(val => val && val.toString().toLowerCase().includes(term))
     );
   }
 
   get sortedRows() {
-    const rows = [...this.filteredRows];
-    if (!this.sortColumn) return rows;
-    const column = this.sortColumn;
-    return rows.sort((a, b) => {
-      const valA = a[column as keyof typeof a];
-      const valB = b[column as keyof typeof b];
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        return this.sortDirection === 'asc' ? valA - valB : valB - valA;
-      }
-      return this.sortDirection === 'asc'
-        ? String(valA).localeCompare(String(valB))
-        : String(valB).localeCompare(String(valA));
-    });
+    return [...this.filteredRows];
   }
 
   get pagedRows() {
@@ -128,15 +90,11 @@ export class WritebackTableComponent {
   }
 
   nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredRows.length) {
-      this.currentPage++;
-    }
+    if (this.currentPage * this.pageSize < this.filteredRows.length) this.currentPage++;
   }
 
   previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-    }
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   hasChanges() {
@@ -155,32 +113,19 @@ export class WritebackTableComponent {
         }
       });
       this.isSaving = false;
-      setTimeout(() => {
-        this.rowSaved = [];
-      }, 2000);
+      setTimeout(() => (this.rowSaved = []), 2000);
     }, 1500);
   }
 
   resetRow(row: any) {
-    const original = this.originalData.find((r: any) => r.AccountID === row.AccountID);
-    if (original) {
-      Object.assign(row, { ...original, changed: false });
-    }
-  }
-
-  getValue(row: any, key: string): any {
-    return row[key];
-  }
-
-  setValue(row: any, key: string, value: any): void {
-    row[key] = value;
-    this.markChanged(row, key);
+    const original = this.originalData.find(r => r.AccountID === row.AccountID);
+    if (original) Object.assign(row, { ...original, changed: false });
   }
 
   exportToCSV() {
-    const header = this.columnsToShow.map(col => col.name);
+    const header = this.columnsToShow.map(col => col.label);
     const rows = this.writebackData.map(row =>
-      header.map(colName => `"${(row as any)[colName] ?? ''}"`).join(',')
+      this.columnsToShow.map(col => `"${row[col.field] ?? ''}"`).join(',')
     );
     const csvContent = [header.join(','), ...rows].join('\n');
     this.downloadFile(csvContent, 'data.csv', 'text/csv');
@@ -195,8 +140,8 @@ export class WritebackTableComponent {
     const blob = new Blob([content], { type });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', filename);
+    a.href = url;
+    a.download = filename;
     a.click();
     window.URL.revokeObjectURL(url);
   }
