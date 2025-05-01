@@ -49,35 +49,43 @@
             }">
                     <td *ngFor="let col of columnsToShow" class="px-4 py-2 border-r border-gray-200">
 
+                        <!-- Predicted to Churn Badge -->
                         <ng-container *ngIf="col.field === 'Churned_predicted'; else defaultCell">
                             <span class="relative group inline-block cursor-pointer">
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold text-white"
-                                    [ngClass]="getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row, col.field)?.toLowerCase() === 'yes' ? 'bg-red-500' : 'bg-green-500'">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold text-white" [ngClass]="getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row, col.field)?.toLowerCase() === 'yes'
+                        ? 'bg-red-500'
+                        : 'bg-green-500'">
                                     {{ getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row,
-                                    col.field)?.toLowerCase() === 'yes' ? 'Churn' : 'No Churn' }}
+                                    col.field)?.toLowerCase() === 'yes'
+                                    ? 'Churn'
+                                    : 'No Churn' }}
                                 </span>
-                                <!-- Hover tooltip -->
                                 <span
                                     class="absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 text-xs text-white bg-black bg-opacity-75 px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                     {{ getValue(row, col.field)?.toLowerCase() === 'churn' || getValue(row,
-                                    col.field)?.toLowerCase() === 'yes' ? 'High churn risk' : 'Stable customer' }}
+                                    col.field)?.toLowerCase() === 'yes'
+                                    ? 'High churn risk'
+                                    : 'Stable customer' }}
                                     <span
                                         class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-100 rotate-45"></span>
                                 </span>
                             </span>
                         </ng-container>
 
+                        <!-- Reusable Default Cell Handler -->
                         <ng-template #defaultCell>
-                            <ng-container *ngIf="col.field === 'ProbabilityOfChurn'; else rawValue">
+
+                            <!-- Probability of Churn Progress Bar -->
+                            <ng-container *ngIf="col.field === 'ProbabilityOfChurn'; else statusCheck">
                                 <div class="w-full">
                                     <div class="flex items-center gap-2">
                                         <div class="w-full h-2 rounded bg-gray-200 dark:bg-gray-700">
                                             <div class="h-full rounded" [ngClass]="{
-                                                'bg-green-500': parseInt(getValue(row, col.field)) <= 30,
-                                                'bg-yellow-500': parseInt(getValue(row, col.field)) > 30 && parseInt(getValue(row, col.field)) <= 70,
-                                                'bg-red-500': parseInt(getValue(row, col.field)) > 70
-                                              }" [style.width.%]="parseInt(getValue(row, col.field))"
-                                                [style.width.%]="parseInt(getValue(row, col.field))"></div>
+                              'bg-green-500': parseInt(getValue(row, col.field)) <= 30,
+                              'bg-yellow-500': parseInt(getValue(row, col.field)) > 30 && parseInt(getValue(row, col.field)) <= 70,
+                              'bg-red-500': parseInt(getValue(row, col.field)) > 70
+                            }" [style.width.%]="parseInt(getValue(row, col.field))">
+                                            </div>
                                         </div>
                                         <span class="text-xs font-medium text-gray-800 dark:text-white">
                                             {{ getValue(row, col.field) }}
@@ -85,13 +93,39 @@
                                     </div>
                                 </div>
                             </ng-container>
+
+                            <!-- Status Dropdown with Highlight and Tooltip -->
+                            <ng-template #statusCheck>
+                                <ng-container *ngIf="col.field === 'Status'; else rawValue">
+                                    <div class="relative group w-full">
+                                        <select [(ngModel)]="row[col.field]"
+                                            (ngModelChange)="markChanged(row, col.field)"
+                                            class="w-full rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
+                                            [ngClass]="{
+                                  'border border-yellow-500': !row[col.field],
+                                  'bg-white dark:bg-gray-700': true
+                                }">
+                                            <option [ngValue]="null">—</option>
+                                            <option value="Approve">Approve</option>
+                                            <option value="Reject">Reject</option>
+                                        </select>
+                                        <span *ngIf="!row[col.field]"
+                                            class="absolute top-full mt-1 left-0 text-xs text-yellow-600 bg-white dark:bg-gray-900 px-2 py-1 rounded shadow z-10">
+                                            Please update status
+                                        </span>
+                                    </div>
+                                </ng-container>
+                            </ng-template>
+
+                            <!-- Default Fallback -->
                             <ng-template #rawValue>
                                 {{ getValue(row, col.field) }}
                             </ng-template>
+
                         </ng-template>
 
-
                     </td>
+
                     <td class="px-4 py-2 border-r border-gray-200 text-center">
                         <ng-container *ngIf="rowSaved.includes(row['Account ID']); else resetBtn">
                             <span class="text-green-600 font-bold text-sm">✔</span>

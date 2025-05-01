@@ -27,7 +27,9 @@ export class WritebackTableComponent {
     { label: 'Probability of Churn', field: 'ProbabilityOfChurn' },
     { label: 'Base Fee', field: 'BaseFee' },
     { label: 'Has Renewed', field: 'HasRenewed' },
-    { label: 'Plan Type', field: 'PlanType' }
+    { label: 'Plan Type', field: 'PlanType' },
+    { label: 'Status', field: 'Status' }
+
   ];
 
   writebackData: any[] = [];
