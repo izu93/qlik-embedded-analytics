@@ -41,7 +41,8 @@ export class WritebackTableComponent {
     { label: 'Base Fee', field: 'BaseFee' },
     { label: 'Has Renewed', field: 'HasRenewed' },
     { label: 'Plan Type', field: 'PlanType' },
-    { label: 'Status', field: 'Status' }
+    { label: 'Status', field: 'Status' },
+    { label: 'Last Updated', field: 'LastUpdated' }
   ];
 
   // Live dataset for editing
@@ -74,6 +75,7 @@ export class WritebackTableComponent {
           HasRenewed: row['HasRenewed'] ?? '',
           PlanType: row['PlanType'] ?? '',
           Status: row['Status'] ?? null,
+          LastUpdated: row['LastUpdated'] ?? '',
           changed: false
         }));
 
@@ -88,6 +90,10 @@ export class WritebackTableComponent {
   markChanged(row: any, field?: string) {
     row.changed = true;
     if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
+    //update timestamp if the changed field is Status
+    if (field === 'Status') {
+      row['LastUpdated'] = new Date().toISOString();
+    }
   }
 
   // Returns the value of a given column in a row
