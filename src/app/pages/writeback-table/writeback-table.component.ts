@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-writeback-table',
@@ -50,8 +51,8 @@ export class WritebackTableComponent {
   originalData: any[] = [];
 
   // Qlik object references
-  readonly appId = '615ed533-b2d0-48cc-8d43-db57cd809305';
-  readonly objectId = 'GXQNmr';
+  readonly appId = environment.qlik.appId;
+  readonly objectId = environment.qlik.objectId;
 
   constructor(private qlikService: QlikAPIService) { }
 
