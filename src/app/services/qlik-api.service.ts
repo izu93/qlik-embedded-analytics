@@ -146,4 +146,54 @@ export class QlikAPIService {
       };
     }
   }
+
+  async getObjectData(objectId: string, appId: string): Promise<any[]> {
+    try {
+      const appSession = openAppSession({ appId });
+      const app = await appSession.getDoc();
+
+      const obj = await app.getObject(objectId);
+      const layout = await obj.getLayout();
+      const hyperCube = layout.qHyperCube;
+
+      if (!hyperCube) {
+        console.warn('Object is not a hypercube or missing cube data.');
+        return [];
+      }
+
+      // Explicitly fetch data from the cube
+      const data = await obj.getHyperCubeData('/qHyperCubeDef', [{
+        qTop: 0,
+        qLeft: 0,
+        qHeight: 1000, // fetch max 1000 rows
+        qWidth: (hyperCube.qDimensionInfo?.length ?? 0) + (hyperCube.qMeasureInfo?.length || 0),
+      }]);
+
+      const matrix = data?.[0]?.qMatrix ?? [];
+
+      if (!matrix.length) {
+        console.warn('Still no rows from HyperCube fetch.');
+        return [];
+      }
+
+      const fields = [
+        ...(hyperCube.qDimensionInfo ?? []).map((d: any) => d.qFallbackTitle),
+        ...(hyperCube.qMeasureInfo ?? []).map((m: any) => m.qFallbackTitle),
+      ];
+
+      const rows = matrix.map(row =>
+        Object.fromEntries(row.map((cell: any, i: number) => [fields[i], cell.qText]))
+      );
+
+      console.log('Extracted object data (via getHyperCubeData):', rows);
+      return rows;
+
+    } catch (err) {
+      console.error('getObjectData failed:', err);
+      return [];
+    }
+  }
+
+
+
 }

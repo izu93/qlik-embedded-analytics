@@ -26,43 +26,53 @@ export class WritebackTableComponent {
   allFields: any[] = [];
   columnsToShow: any[] = [];
   selectedField: string = '';
+  writebackData: any[] = [];
+  originalData: any[] = [];
+
+  readonly appId = '615ed533-b2d0-48cc-8d43-db57cd809305';
+  readonly objectId = 'pjpWn'; // Your actual Qlik table object ID
 
   constructor(private qlikService: QlikAPIService) { }
 
   ngOnInit(): void {
-    this.qlikService.getAppData().then(data => {
-      console.log('Qlik App Data (Full):', data);
-      this.masterDimensions = data.dimensions;
-      this.masterMeasures = data.measures;
-      this.allFields = data.allFields;
-      this.columnsToShow = this.allFields.filter(field =>
-        field.cardinal > 1 && !field.name.startsWith('auto') && field.name !== 'Churned_no'
-      );
-    }).catch(err => {
-      console.error('Error fetching Qlik app data:', err);
-    });
+    if (typeof window === 'undefined') {
+      console.warn('Skipping data load on server.');
+      return;
+    }
+
+    this.qlikService.getAppData()
+      .then(data => {
+        this.masterDimensions = data.dimensions;
+        this.masterMeasures = data.measures;
+        this.allFields = data.allFields;
+
+        this.columnsToShow = this.allFields.filter(field =>
+          field.cardinal > 1 &&
+          !field.name.startsWith('auto') &&
+          field.name !== 'Churned_no'
+        );
+
+        this.columnsToShow = this.columnsToShow.filter(f => !!f?.name && typeof f.name === 'string');
+
+        return this.qlikService.getObjectData(this.objectId, this.appId);
+      })
+      .then(rows => {
+        if (!rows) return;
+
+        this.writebackData = rows.map(row => ({
+          ...row,
+          ServiceRating: '',
+          NumberOfPenalties: Number(row['NumberOfPenalties']) || 0,
+          changed: false
+        }));
+
+        console.log('Populated rows from object:', this.writebackData);
+        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      })
+      .catch(err => {
+        console.error('Error loading Qlik data:', err);
+      });
   }
-
-  writebackData = Array(20).fill(null).map((_, i) => ({
-    AccountID: `CUST${(i + 1).toString().padStart(3, '0')}`,
-    SHAP_value: parseFloat((Math.random() * 0.9 + 0.1).toFixed(2)),
-    Churned_predicted: i % 2 === 0 ? 'Churn' : 'No Churn',
-    Churned_yes: i % 2 === 0 ? 1 : 0,
-    AdditionalFeatureSpend: Math.floor(Math.random() * 100),
-    BaseFee: Math.floor(Math.random() * 100 + 50),
-    CurrentPeriodUsage: Math.floor(Math.random() * 200),
-    HasRenewed: i % 3 === 0 ? 1 : 0,
-    NumberOfPenalties: Math.floor(Math.random() * 5),
-    PlanType: ['Basic', 'Plus', 'Premium'][i % 3],
-    PriorPeriodUsage: Math.floor(Math.random() * 150),
-    Promotion: i % 2 === 0 ? 'Yes' : 'No',
-    ServiceRating: '',
-    ServiceTickets: Math.floor(Math.random() * 10),
-    StartWeek: Math.floor(Math.random() * 52),
-    changed: false
-  }));
-
-  originalData = JSON.parse(JSON.stringify(this.writebackData));
 
   markChanged(row: any, field?: string) {
     row.changed = true;
@@ -72,7 +82,7 @@ export class WritebackTableComponent {
   }
 
   isFeedbackInvalid(row: any): boolean {
-    return row.changed && !row.ServiceRating.trim() && this.touchedFields.has(`${row.AccountID}_ServiceRating`);
+    return row.changed && !row.ServiceRating?.trim() && this.touchedFields.has(`${row.AccountID}_ServiceRating`);
   }
 
   isStatusPending(row: any): boolean {
@@ -158,7 +168,6 @@ export class WritebackTableComponent {
     }
   }
 
-  // Dynamic access helpers to avoid TS errors
   getValue(row: any, key: string): any {
     return row[key];
   }
@@ -168,7 +177,6 @@ export class WritebackTableComponent {
     this.markChanged(row, key);
   }
 
-  // Export to CSV and JSON
   exportToCSV() {
     const header = this.columnsToShow.map(col => col.name);
     const rows = this.writebackData.map(row =>

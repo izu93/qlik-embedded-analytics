@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { QlikApiService } from './qlik-api.service';
+import { QlikAPIService } from './qlik-api.service';
 
 describe('QlikApiService', () => {
-  let service: QlikApiService;
+  let service: QlikAPIService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(QlikApiService);
+    service = TestBed.inject(QlikAPIService);
   });
 
   it('should be created', () => {
