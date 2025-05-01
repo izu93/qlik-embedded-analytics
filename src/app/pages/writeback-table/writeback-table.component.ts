@@ -18,6 +18,8 @@ export class WritebackTableComponent {
   rowSaved: string[] = [];
   isSaving = false;
   touchedFields = new Set<string>();
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   columnsToShow = [
     { label: 'Account ID', field: 'AccountID' },
@@ -80,8 +82,25 @@ export class WritebackTableComponent {
     );
   }
 
+  setSort(field: string) {
+    if (this.sortColumn === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = field;
+      this.sortDirection = 'asc';
+    }
+  }
+
   get sortedRows() {
-    return [...this.filteredRows];
+    const sorted = [...this.filteredRows];
+    if (this.sortColumn) {
+      sorted.sort((a, b) => {
+        const valA = a[this.sortColumn];
+        const valB = b[this.sortColumn];
+        return (valA > valB ? 1 : -1) * (this.sortDirection === 'asc' ? 1 : -1);
+      });
+    }
+    return sorted;
   }
 
   get pagedRows() {
@@ -144,5 +163,9 @@ export class WritebackTableComponent {
     a.download = filename;
     a.click();
     window.URL.revokeObjectURL(url);
+  }
+
+  parseInt(value: any): number {
+    return Number.parseInt(value?.toString().replace('%', '').trim() || '0', 10);
   }
 }
