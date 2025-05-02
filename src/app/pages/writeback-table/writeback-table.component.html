@@ -210,7 +210,8 @@
                   <span class="text-xs text-gray-600 dark:text-gray-300">
                     {{
                       getValue(row, col.field)
-                        ? (getValue(row, col.field) | date : "short")
+                        ? (getValue(row, col.field)
+                          | date : "M/dd/yyyy hh:mm:ss a" : "" : "en")
                         : "—"
                     }}
                   </span>

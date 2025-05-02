@@ -88,7 +88,7 @@ export class WritebackTableComponent {
           Status: row['Status'] ?? '',
           ActionTaken: row['ActionTaken'] ?? '',
           Feedback: row['Feedback'] ?? '',
-          UpdatedAt: row['UpdatedAt'] ?? '',
+          UpdatedAt: row['UpdatedAt'] ? new Date(row['UpdatedAt']) : '',
           UpdatedBy: row['UpdatedBy'] ?? '',
           changed: false,
         }));
@@ -103,13 +103,17 @@ export class WritebackTableComponent {
   markChanged(row: any, field?: string) {
     row.changed = true;
     if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
-    //update timestamp if the changed field is Status
-    if (field === 'Status') {
-      row['LastUpdated'] = new Date().toISOString();
-    }
 
     // Add timestamp and user
-    row.UpdatedAt = new Date().toISOString();
+    row.UpdatedAt = new Date().toLocaleString('en-US', {
+      month: 'numeric',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
     row.UpdatedBy = this.userName;
   }
 
