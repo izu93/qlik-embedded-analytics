@@ -18,8 +18,7 @@ export class TopBarComponent implements OnInit {
 
   constructor(
     private renderer: Renderer2,
-    private qlikService: QlikAPIService,
-   
+    private qlikService: QlikAPIService
   ) {}
 
   async ngOnInit(): Promise<void> {

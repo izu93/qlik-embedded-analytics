@@ -257,4 +257,11 @@ export class WritebackTableComponent {
       10
     );
   }
+
+  //to reset the localStorage and reload the page
+  // This is useful for testing purposes, but should be removed in production
+  clearLocalCache() {
+    localStorage.removeItem('writebackData');
+    location.reload();
+  }
 }
