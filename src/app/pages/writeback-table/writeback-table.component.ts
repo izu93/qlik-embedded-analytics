@@ -37,6 +37,8 @@ export class WritebackTableComponent {
   //rrentUser: string = 'Unknown User';
   userName: string = '';
 
+  statusWidth = 140;
+
   // Column definitions used in the UI
   columnsToShow = [
     { label: 'Account ID', field: 'AccountID' },
@@ -92,6 +94,7 @@ export class WritebackTableComponent {
         }));
 
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+        console.log('Loaded data:', this.writebackData);
       })
       .catch((err) => console.error('Error loading Qlik data:', err));
   }

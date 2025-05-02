@@ -41,9 +41,23 @@
     </div>
   </div>
 
+  <!-- Optional: Column width adjustment controls -->
+  <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
+    <label class="flex items-center gap-1">
+      <span>Status Width:</span>
+      <input
+        type="range"
+        min="80"
+        max="300"
+        [(ngModel)]="statusWidth"
+        class="w-32"
+      />
+    </label>
+  </div>
+
   <!-- Table container -->
-  <div class="overflow-x-auto rounded-lg shadow">
-    <table class="min-w-full bg-white dark:bg-gray-900">
+  <div class="flex-1 overflow-auto max-w-full rounded-lg shadow">
+    <table class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
       <!-- Table header -->
       <thead
         class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase"
@@ -162,9 +176,10 @@
                 <ng-container *ngIf="col.field === 'Status'; else rawValue">
                   <div class="relative group w-full">
                     <select
+                      [style.width.px]="statusWidth"
                       [(ngModel)]="row[col.field]"
                       (ngModelChange)="markChanged(row, col.field)"
-                      class="w-full rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
+                      class="w-full max-w-[140px] sm:max-w-[160px] md:max-w-[180px] rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-white"
                       [ngClass]="{
                         'border border-yellow-500': !row[col.field],
                         'bg-white dark:bg-gray-700': true

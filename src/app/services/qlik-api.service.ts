@@ -143,7 +143,7 @@ export class QlikAPIService {
 
       const token = this.getAccessTokenFromSessionStorage();
       if (!token) throw new Error('Missing access token');
-      console.log('Access token:', token);
+      //nsole.log('Access token:', token);
 
       const response = await fetch(
         `https://${this.qlikConfig.host}/api/v1/users/me`,
