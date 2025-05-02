@@ -38,6 +38,7 @@ export class WritebackTableComponent {
   userName: string = '';
 
   statusWidth = 140;
+  
 
   // Column definitions used in the UI
   columnsToShow = [
