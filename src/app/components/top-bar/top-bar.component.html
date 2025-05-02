@@ -139,8 +139,31 @@
     <div
       class="flex items-center gap-2 transform hover:scale-105 transition-transform"
     >
-      <span class="text-gray-700 dark:text-white font-semibold">
-        {{ currentUser || "User" }}
+      <span
+        class="text-sm text-gray-700 dark:text-white flex items-center gap-1 font-semibold"
+      >
+        <ng-container *ngIf="isLoadingUser; else userLoaded">
+          <svg
+            class="animate-spin h-4 w-4 text-gray-500"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+        </ng-container>
+        <ng-template #userLoaded>{{ currentUser }}</ng-template>
       </span>
       <img
         src="assets/images/user-avatar.png"

@@ -7,23 +7,29 @@ import { QlikAPIService } from '../../services/qlik-api.service'; // Adjust path
   standalone: true,
   imports: [CommonModule],
   templateUrl: './top-bar.component.html',
-  styleUrl: './top-bar.component.css'
+  styleUrl: './top-bar.component.css',
 })
 export class TopBarComponent implements OnInit {
   isChatOpen = false;
   isAlertOpen = false;
   isDarkMode = false;
   currentUser: string = '';
+  isLoadingUser = true; // new flag
 
   constructor(
     private renderer: Renderer2,
-    private qlikService: QlikAPIService
+    private qlikService: QlikAPIService,
+   
   ) {}
 
-  ngOnInit(): void {
-    this.qlikService.getCurrentUserName()
-      .then(name => this.currentUser = name)
-      .catch(() => this.currentUser = 'User');
+  async ngOnInit(): Promise<void> {
+    try {
+      this.currentUser = await this.qlikService.getCurrentUserName();
+    } catch {
+      this.currentUser = 'User';
+    } finally {
+      this.isLoadingUser = false; // Hide loader once done
+    }
   }
 
   toggleChat() {
