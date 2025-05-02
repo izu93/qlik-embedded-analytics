@@ -260,8 +260,14 @@ export class WritebackTableComponent {
 
   //to reset the localStorage and reload the page
   // This is useful for testing purposes, but should be removed in production
-  clearLocalCache() {
-    localStorage.removeItem('writebackData');
-    location.reload();
+  confirmAndClearLocalCache() {
+    const confirmed = window.confirm(
+      '⚠️This will remove all saved writeback data and reload the app.\nAre you sure you want to proceed?'
+    );
+
+    if (confirmed) {
+      localStorage.removeItem('writebackData');
+      location.reload();
+    }
   }
 }
