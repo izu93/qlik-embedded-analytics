@@ -38,7 +38,6 @@ export class WritebackTableComponent {
   userName: string = '';
 
   statusWidth = 140;
-  
 
   // Column definitions used in the UI
   columnsToShow = [
@@ -74,6 +73,16 @@ export class WritebackTableComponent {
       console.log('Logged in as:', name);
     });
 
+    //Check if saved data exists in localStorage
+    const saved = localStorage.getItem('writebackData');
+    if (saved) {
+      this.writebackData = JSON.parse(saved);
+      this.originalData = JSON.parse(saved);
+      console.log('Loaded data from localStorage:', this.writebackData);
+      return;
+    }
+
+    // Otherwise fetch from Qlik
     this.qlikService
       .getObjectData(this.objectId, this.appId)
       .then((rows) => {
@@ -198,6 +207,9 @@ export class WritebackTableComponent {
           this.rowSaved.push(row.AccountID);
         }
       });
+      //Save to localStorage for persistence
+      localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
+
       this.isSaving = false;
       setTimeout(() => (this.rowSaved = []), 2000);
     }, 1500);
