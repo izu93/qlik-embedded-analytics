@@ -13,7 +13,7 @@
 
 .row-edited {
     animation: glowEdited 0.6s ease-in-out;
-    background-color: #c3d6fe !important;
+    background-color: #7199f0 !important;
 }
 
 /* Subtle saved row green highlight */
@@ -35,13 +35,11 @@
 tr {
     transition: background-color 0.3s ease;
 }
-
 th {
-    user-select: none;
+  user-select: none;
 }
-
 th span {
-    font-size: 0.75rem;
-    margin-left: 0.25rem;
-    color: #6b7280;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  color: #6b7280;
 }

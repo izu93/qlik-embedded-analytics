@@ -89,9 +89,10 @@
       <!-- Table body -->
       <tbody>
         <tr
-          *ngFor="let row of pagedRows"
+          *ngFor="let row of pagedRows; let i = index"
           [ngClass]="{
-            'border-b hover:bg-gray-100 dark:hover:bg-gray-800 even:bg-gray-50 text-sm': true,
+            'border-b text-sm': true,
+
             'row-edited': row.changed,
             'row-saved': rowSaved.includes(row['Account ID'])
           }"
@@ -176,6 +177,13 @@
                 <ng-container *ngIf="col.field === 'Status'; else rawValue">
                   <div class="relative group w-full">
                     <select
+                      [style.backgroundColor]="
+                        row.Status === 'Approve'
+                          ? '#22c55e'
+                          : row.Status === 'Reject'
+                          ? '#ef4444'
+                          : ''
+                      "
                       [style.width.px]="statusWidth"
                       [(ngModel)]="row[col.field]"
                       (ngModelChange)="markChanged(row, col.field)"
