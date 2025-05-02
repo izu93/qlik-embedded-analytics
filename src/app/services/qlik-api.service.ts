@@ -5,10 +5,19 @@ import { openAppSession } from '@qlik/api/qix';
 import { HostConfig } from '@qlik/api/auth';
 import { environment } from '../../environments/environment';
 
+// Extend the Window interface to include the 'x' property
+declare global {
+  interface Window {
+    x: any;
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class QlikAPIService {
+  qlik: any; // Add this at the top of your TS file
+
   // Boolean flag to detect if code is running in the browser
   private isBrowser: boolean;
 
@@ -32,8 +41,19 @@ export class QlikAPIService {
   }
 
   /**
-   * Fetches data from a Qlik Sense object (table/hypercube).
-   * Used to retrieve table data from visual objects.
+   * Retrieves the current OAuth2 access token from session storage.
+   * Used for authenticated REST API calls.
+   */
+  getAccessTokenFromSessionStorage(): string | null {
+    const key = Object.keys(sessionStorage).find(
+      (k) => k.includes('access-token') && sessionStorage.getItem(k)
+    );
+    return key ? sessionStorage.getItem(key) : null;
+  }
+
+  /**
+   * Connects to a Qlik Sense app and fetches rows from a visual object (hypercube).
+   * Returns structured data by mapping dimension and measure titles to cell values.
    *
    * @param objectId - The object ID of the Qlik table/chart
    * @param appId - The ID of the Qlik Sense app
@@ -43,6 +63,7 @@ export class QlikAPIService {
     try {
       // Open a session with the specified Qlik app
       const appSession = openAppSession({ appId });
+      window.x = appSession; // Debugging: expose appSession to the global window object
 
       // Get the document handle (app interface)
       const app = await appSession.getDoc();
@@ -61,12 +82,16 @@ export class QlikAPIService {
       }
 
       // Fetch up to 1000 rows of data from the hypercube
-      const data = await obj.getHyperCubeData('/qHyperCubeDef', [{
-        qTop: 0,
-        qLeft: 0,
-        qHeight: 1000,
-        qWidth: (hyperCube.qDimensionInfo?.length ?? 0) + (hyperCube.qMeasureInfo?.length || 0),
-      }]);
+      const data = await obj.getHyperCubeData('/qHyperCubeDef', [
+        {
+          qTop: 0,
+          qLeft: 0,
+          qHeight: 1000,
+          qWidth:
+            (hyperCube.qDimensionInfo?.length ?? 0) +
+            (hyperCube.qMeasureInfo?.length || 0),
+        },
+      ]);
 
       // Extract the actual matrix of data rows
       const matrix = data?.[0]?.qMatrix ?? [];
@@ -78,16 +103,21 @@ export class QlikAPIService {
       }
 
       // Extract labels for dimensions and measures
-      const dimensionFields = (hyperCube.qDimensionInfo ?? []).map((d: any) => d.qFallbackTitle);
-      const measureFields = (hyperCube.qMeasureInfo ?? []).map((m: any) => m.qFallbackTitle);
+      const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
+        (d: any) => d.qFallbackTitle
+      );
+      const measureFields = (hyperCube.qMeasureInfo ?? []).map(
+        (m: any) => m.qFallbackTitle
+      );
       const allFields = [...dimensionFields, ...measureFields];
 
       // Apply sort order based on effective visual column order
-      const sortOrder = hyperCube.qEffectiveInterColumnSortOrder ?? allFields.map((_, i) => i);
-      const fields = sortOrder.map(i => allFields[i]);
+      const sortOrder =
+        hyperCube.qEffectiveInterColumnSortOrder ?? allFields.map((_, i) => i);
+      const fields = sortOrder.map((i) => allFields[i]);
 
       // Map each matrix row to a structured object with field names as keys
-      const rows = matrix.map(row =>
+      const rows = matrix.map((row) =>
         Object.fromEntries(
           row.map((cell: any, i: number) => [fields[i], cell.qText])
         )
@@ -96,11 +126,44 @@ export class QlikAPIService {
       // Log result and return mapped rows
       console.log('Extracted object data (via getHyperCubeData):', rows);
       return rows;
-
     } catch (err) {
       // Log and return empty array on error
       console.error('getObjectData failed:', err);
       return [];
+    }
+  }
+
+  /**
+   * Retrieves the authenticated Qlik Cloud user's name using the REST API.
+   * Falls back to email or subject if name is not available.
+   */
+  async getCurrentUserName(): Promise<string> {
+    try {
+      if (!this.isBrowser) return 'Server';
+
+      const token = this.getAccessTokenFromSessionStorage();
+      if (!token) throw new Error('Missing access token');
+      console.log('Access token:', token);
+
+      const response = await fetch(
+        `https://${this.qlikConfig.host}/api/v1/users/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const user = await response.json();
+      return user.name || user.email || user.subject || 'Unknown User';
+    } catch (err) {
+      console.error('❌ Failed to fetch Qlik Cloud user via REST API:', err);
+      return 'Unknown User';
     }
   }
 

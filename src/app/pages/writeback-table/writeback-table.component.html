@@ -189,13 +189,21 @@
 
               <!-- Final fallback if no special formatting is needed -->
               <ng-template #rawValue>
-                <ng-container *ngIf="col.field === 'LastUpdated'; else plainValue">
+                <ng-container
+                  *ngIf="col.field === 'LastUpdated'; else plainValue"
+                >
                   <span class="text-xs text-gray-600 dark:text-gray-300">
-                    {{ getValue(row, col.field) ? (getValue(row, col.field) | date: 'short') : '—' }}
+                    {{
+                      getValue(row, col.field)
+                        ? (getValue(row, col.field) | date : "short")
+                        : "—"
+                    }}
                   </span>
                 </ng-container>
                 <ng-template #plainValue>
-                  {{ getValue(row, col.field) }}
+                  <span class="text-xs text-gray-800 dark:text-gray-200">
+                    {{ getValue(row, col.field) || "—" }}
+                  </span>
                 </ng-template>
               </ng-template>
             </ng-template>

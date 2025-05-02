@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './writeback-table.component.html',
-  styleUrls: ['./writeback-table.component.css']
+  styleUrls: ['./writeback-table.component.css'],
 })
 export class WritebackTableComponent {
   // Search term for filtering rows
@@ -33,6 +33,10 @@ export class WritebackTableComponent {
   sortColumn = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  //current user (will be set on init)
+  //rrentUser: string = 'Unknown User';
+  userName: string = '';
+
   // Column definitions used in the UI
   columnsToShow = [
     { label: 'Account ID', field: 'AccountID' },
@@ -42,7 +46,8 @@ export class WritebackTableComponent {
     { label: 'Has Renewed', field: 'HasRenewed' },
     { label: 'Plan Type', field: 'PlanType' },
     { label: 'Status', field: 'Status' },
-    { label: 'Last Updated', field: 'LastUpdated' }
+    { label: 'Updated At', field: 'UpdatedAt' },
+    { label: 'Updated By', field: 'UpdatedBy' },
   ];
 
   // Live dataset for editing
@@ -55,35 +60,40 @@ export class WritebackTableComponent {
   readonly appId = environment.qlik.appId;
   readonly objectId = environment.qlik.objectId;
 
-  constructor(private qlikService: QlikAPIService) { }
+  constructor(private qlikService: QlikAPIService) {}
 
   ngOnInit(): void {
-    // Skip if not in browser
     if (typeof window === 'undefined') return;
 
-    // Load data from Qlik API object
-    this.qlikService.getObjectData(this.objectId, this.appId)
-      .then(rows => {
+    // Get current user name from Qlik
+    this.qlikService.getCurrentUserName().then((name) => {
+      this.userName = name;
+      console.log('Logged in as:', name);
+    });
+
+    this.qlikService
+      .getObjectData(this.objectId, this.appId)
+      .then((rows) => {
         if (!rows) return;
 
-        // Normalize field names and mark each row as unchanged
-        this.writebackData = rows.map(row => ({
+        this.writebackData = rows.map((row) => ({
           AccountID: row['Account ID'] ?? '',
           Churned_predicted: row['Predicted to Churn?'] ?? '',
           ProbabilityOfChurn: row['Probability of Churn'] ?? '',
           BaseFee: row['Base Fee'] ?? '',
           HasRenewed: row['HasRenewed'] ?? '',
           PlanType: row['PlanType'] ?? '',
-          Status: row['Status'] ?? null,
-          LastUpdated: row['LastUpdated'] ?? '',
-          changed: false
+          Status: row['Status'] ?? '',
+          ActionTaken: row['ActionTaken'] ?? '',
+          Feedback: row['Feedback'] ?? '',
+          UpdatedAt: row['UpdatedAt'] ?? '',
+          UpdatedBy: row['UpdatedBy'] ?? '',
+          changed: false,
         }));
 
-        // Deep copy original data for reset reference
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
-        console.log('Final mapped rows (normalized):', this.writebackData);
       })
-      .catch(err => console.error('Error loading Qlik data:', err));
+      .catch((err) => console.error('Error loading Qlik data:', err));
   }
 
   // Marks a row and optionally a field as changed
@@ -94,6 +104,10 @@ export class WritebackTableComponent {
     if (field === 'Status') {
       row['LastUpdated'] = new Date().toISOString();
     }
+
+    // Add timestamp and user
+    row.UpdatedAt = new Date().toISOString();
+    row.UpdatedBy = this.userName;
   }
 
   // Returns the value of a given column in a row
@@ -112,11 +126,11 @@ export class WritebackTableComponent {
     const term = this.searchTerm.toLowerCase().trim();
     return !term
       ? this.writebackData
-      : this.writebackData.filter(row =>
-        Object.values(row).some(val =>
-          val && val.toString().toLowerCase().includes(term)
-        )
-      );
+      : this.writebackData.filter((row) =>
+          Object.values(row).some(
+            (val) => val && val.toString().toLowerCase().includes(term)
+          )
+        );
   }
 
   // Toggles sort state or switches direction
@@ -150,7 +164,8 @@ export class WritebackTableComponent {
 
   // Navigate to next page
   nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredRows.length) this.currentPage++;
+    if (this.currentPage * this.pageSize < this.filteredRows.length)
+      this.currentPage++;
   }
 
   // Navigate to previous page
@@ -160,7 +175,7 @@ export class WritebackTableComponent {
 
   // Check if any row has been modified
   hasChanges() {
-    return this.writebackData.some(row => row.changed);
+    return this.writebackData.some((row) => row.changed);
   }
 
   // Simulate saving changes and reset changed flags
@@ -169,7 +184,7 @@ export class WritebackTableComponent {
     setTimeout(() => {
       this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       this.rowSaved = [];
-      this.writebackData.forEach(row => {
+      this.writebackData.forEach((row) => {
         if (row.changed) {
           row.changed = false;
           this.rowSaved.push(row.AccountID);
@@ -182,15 +197,17 @@ export class WritebackTableComponent {
 
   // Reset a single row to its original state
   resetRow(row: any) {
-    const original = this.originalData.find(r => r.AccountID === row.AccountID);
+    const original = this.originalData.find(
+      (r) => r.AccountID === row.AccountID
+    );
     if (original) Object.assign(row, { ...original, changed: false });
   }
 
   // Export all current rows to CSV format
   exportToCSV() {
-    const header = this.columnsToShow.map(col => col.label);
-    const rows = this.writebackData.map(row =>
-      this.columnsToShow.map(col => `"${row[col.field] ?? ''}"`).join(',')
+    const header = this.columnsToShow.map((col) => col.label);
+    const rows = this.writebackData.map((row) =>
+      this.columnsToShow.map((col) => `"${row[col.field] ?? ''}"`).join(',')
     );
     const csvContent = [header.join(','), ...rows].join('\n');
     this.downloadFile(csvContent, 'data.csv', 'text/csv');
@@ -215,6 +232,9 @@ export class WritebackTableComponent {
 
   // Converts any input to integer (used for % bar display)
   parseInt(value: any): number {
-    return Number.parseInt(value?.toString().replace('%', '').trim() || '0', 10);
+    return Number.parseInt(
+      value?.toString().replace('%', '').trim() || '0',
+      10
+    );
   }
 }
