@@ -88,6 +88,7 @@
               </span>
             </span>
           </th>
+          <th class="px-4 py-2 text-left">Comments Input</th>
           <th class="px-4 py-2 text-center">Reset</th>
         </tr>
       </thead>
@@ -237,6 +238,17 @@
                 </ng-template>
               </ng-template>
             </ng-template>
+          </td>
+
+          <!-- Comments column with textarea for comments -->
+          <td class="px-4 py-2 border-r border-gray-200">
+            <input
+              type="text"
+              [(ngModel)]="row['Comments']"
+              (ngModelChange)="markChanged(row, 'Comments')"
+              class="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:text-white"
+              placeholder="Enter Comments"
+            />
           </td>
 
           <!-- Reset button column -->

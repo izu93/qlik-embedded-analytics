@@ -50,6 +50,7 @@ export class WritebackTableComponent {
     { label: 'Status', field: 'Status' },
     { label: 'Updated At', field: 'UpdatedAt' },
     { label: 'Updated By', field: 'UpdatedBy' },
+    { label: 'Comments', field: 'Comments' },
   ];
 
   // Live dataset for editing
@@ -61,6 +62,7 @@ export class WritebackTableComponent {
   // Qlik object references
   readonly appId = environment.qlik.appId;
   readonly objectId = environment.qlik.objectId;
+  data: any;
 
   constructor(private qlikService: QlikAPIService) {}
 
@@ -97,9 +99,9 @@ export class WritebackTableComponent {
           PlanType: row['PlanType'] ?? '',
           Status: row['Status'] ?? '',
           ActionTaken: row['ActionTaken'] ?? '',
-          Feedback: row['Feedback'] ?? '',
           UpdatedAt: row['UpdatedAt'] ? new Date(row['UpdatedAt']) : '',
           UpdatedBy: row['UpdatedBy'] ?? '',
+          Comments: row['Comments'] ?? '',
           changed: false,
         }));
 
@@ -107,6 +109,13 @@ export class WritebackTableComponent {
         console.log('Loaded data:', this.writebackData);
       })
       .catch((err) => console.error('Error loading Qlik data:', err));
+
+    // Add default Comments field if not present
+    this.data.forEach((row: any) => {
+      if (!row.hasOwnProperty('Comments')) {
+        row['Comments'] = '';
+      }
+    });
   }
 
   // Marks a row and optionally a field as changed
