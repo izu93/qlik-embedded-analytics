@@ -191,7 +191,7 @@ export class QlikAPIService {
 
   /*Optional getFromBackend() if you want to load from /data*/
   async getFromBackend(): Promise<any[]> {
-    const res = await fetch(`${environment.backendUrl}/data`);
+    const res = await fetch(`${environment.backendUrl}/api/data`);
     return await res.json();
   }
   /**

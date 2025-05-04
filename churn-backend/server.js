@@ -11,6 +11,11 @@ const PORT = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+// Root route (GET /)
+app.get("/", (req, res) => {
+  res.send("✅ Qlik Writeback API is running. Use /api/save or /api/data.");
+});
+
 // Save writeback data to file
 app.post("/api/save", (req, res) => {
   const data = req.body;
