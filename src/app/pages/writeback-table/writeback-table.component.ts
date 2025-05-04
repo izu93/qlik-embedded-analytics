@@ -48,9 +48,9 @@ export class WritebackTableComponent {
     { label: 'Has Renewed', field: 'HasRenewed' },
     { label: 'Plan Type', field: 'PlanType' },
     { label: 'Status', field: 'Status' },
-    { label: 'Updated At', field: 'UpdatedAt' },
-    { label: 'Updated By', field: 'UpdatedBy' },
-    { label: 'Comments', field: 'Comments' },
+    { label: 'Updated At', field: 'Updated At', hidden: true }, //  hidden
+    { label: 'Updated By', field: 'Updated By', hidden: true }, //  hidden
+    { label: 'Comments', field: 'Comments', hidden: true }, //  hidden
   ];
 
   // Live dataset for editing
@@ -63,6 +63,7 @@ export class WritebackTableComponent {
   readonly appId = environment.qlik.appId;
   readonly objectId = environment.qlik.objectId;
   data: any;
+  col: any;
 
   constructor(private qlikService: QlikAPIService) {}
 
@@ -232,16 +233,57 @@ export class WritebackTableComponent {
     if (original) Object.assign(row, { ...original, changed: false });
   }
 
-  // Export all current rows to CSV format
-  exportToCSV() {
-    const header = this.columnsToShow.map((col) => col.label);
-    const rows = this.writebackData.map((row) =>
-      this.columnsToShow.map((col) => `"${row[col.field] ?? ''}"`).join(',')
-    );
-    const csvContent = [header.join(','), ...rows].join('\n');
-    this.downloadFile(csvContent, 'data.csv', 'text/csv');
+  getChangedRows(): any[] {
+    if (!Array.isArray(this.data)) return [];
+    return this.data.filter((row: any) => row.changed);
   }
+  // Export all current rows to CSV format
+  exportToCSV(): void {
+    const rowsToExport = this.getChangedRows().length
+      ? this.getChangedRows()
+      : this.writebackData;
 
+    const exportFields = [
+      'AccountID',
+      'Churned_predicted',
+      'ProbabilityOfChurn',
+      'BaseFee',
+      'HasRenewed',
+      'PlanType',
+      'Status',
+      'UpdatedAt',
+      'UpdatedBy',
+      'Comments',
+    ];
+
+    const exportLabels = [
+      'Account ID',
+      'Predicted to Churn?',
+      'Probability of Churn',
+      'Base Fee',
+      'Has Renewed',
+      'Plan Type',
+      'Status',
+      'Updated At',
+      'Updated By',
+      'Comments',
+    ];
+
+    const csvContent = [exportLabels.join(',')];
+
+    rowsToExport.forEach((row: any) => {
+      const rowData = exportFields.map((field) => `"${row[field] ?? ''}"`);
+      csvContent.push(rowData.join(','));
+    });
+
+    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.href = url;
+    a.download = 'churn_data.csv';
+    a.click();
+  }
   // Export all current rows to JSON format
   exportToJSON() {
     const json = JSON.stringify(this.writebackData, null, 2);
