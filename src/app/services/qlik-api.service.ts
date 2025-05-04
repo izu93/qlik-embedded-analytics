@@ -169,7 +169,21 @@ export class QlikAPIService {
     return 'Unknown User';
   }
   
+  /*saveToBackend() in QlikAPIService*/
+  async saveToBackend(data: any[]): Promise<any> {
+    const res = await fetch(`${environment.backendUrl}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  }
 
+  /*Optional getFromBackend() if you want to load from /data*/
+  async getFromBackend(): Promise<any[]> {
+    const res = await fetch(`${environment.backendUrl}/data`);
+    return await res.json();
+  }
   /**
    * This method (commented out) is a full metadata fetcher:
    * - Gets master dimensions, measures, visualizations, and all fields.

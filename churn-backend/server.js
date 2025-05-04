@@ -1,39 +1,40 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs');
+const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
+// Enable CORS for all origins (adjust for prod)
 app.use(cors());
+
+// Parse JSON request bodies
 app.use(bodyParser.json());
 
-let writebackData = [];
-
-try {
-  writebackData = JSON.parse(fs.readFileSync('data.json'));
-} catch {
-  writebackData = [];
-}
-
-// Get current writeback data
-app.get('/data', (req, res) => {
-  res.json(writebackData);
+// Health check route
+app.get('/', (req, res) => {
+  res.send('Backend is running on http://localhost:3000');
 });
 
-// Save writeback data
+// Save endpoint for writeback
 app.post('/save', (req, res) => {
   const data = req.body;
-  if (!Array.isArray(data)) {
-    return res.status(400).send('Invalid payload');
+
+  if (!data || !Array.isArray(data)) {
+    return res.status(400).json({ message: 'Invalid payload' });
   }
 
-  writebackData = data;
-  fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
-  res.send({ success: true, message: 'Data saved successfully' });
+  console.log('Received writeback data:', data);
+
+  // Simulate save (could write to file, DB, etc.)
+  res.status(200).json({ message: 'Data saved successfully!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+// Start server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
 });
+
+//Save to a file (e.g., writeback.json or .csv)
+const fs = require('fs');
+fs.writeFileSync('writeback.json', JSON.stringify(data, null, 2));

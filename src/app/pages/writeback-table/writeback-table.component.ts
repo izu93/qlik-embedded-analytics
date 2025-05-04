@@ -206,9 +206,12 @@ export class WritebackTableComponent {
   }
 
   // Simulate saving changes and reset changed flags
+  //Call saveToBackend() inside saveChanges()
   saveChanges() {
     this.isSaving = true;
-    setTimeout(() => {
+    const changedRows = this.getChangedRows();
+
+    this.qlikService.saveToBackend(changedRows).then(() => {
       this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       this.rowSaved = [];
       this.writebackData.forEach((row) => {
@@ -217,12 +220,10 @@ export class WritebackTableComponent {
           this.rowSaved.push(row.AccountID);
         }
       });
-      //Save to localStorage for persistence
       localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
-
       this.isSaving = false;
       setTimeout(() => (this.rowSaved = []), 2000);
-    }, 1500);
+    });
   }
 
   // Reset a single row to its original state
@@ -234,9 +235,11 @@ export class WritebackTableComponent {
   }
 
   getChangedRows(): any[] {
-    if (!Array.isArray(this.data)) return [];
-    return this.data.filter((row: any) => row.changed);
+    return this.writebackData.filter((row: any) => row.changed);
   }
+
+  // Removed duplicate saveChanges() implementation
+
   // Export all current rows to CSV format
   exportToCSV(): void {
     const rowsToExport = this.getChangedRows().length
