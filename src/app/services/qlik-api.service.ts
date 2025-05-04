@@ -139,19 +139,22 @@ export class QlikAPIService {
    */
   async getCurrentUserName(): Promise<string> {
     if (!this.isBrowser) return 'Server';
-  
+
     // Retry logic for token availability
     for (let attempt = 0; attempt < 10; attempt++) {
       const token = this.getAccessTokenFromSessionStorage();
       if (token) {
         try {
-          const response = await fetch(`https://${this.qlikConfig.host}/api/v1/users/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-  
+          const response = await fetch(
+            `https://${this.qlikConfig.host}/api/v1/users/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const user = await response.json();
           return user.name || user.email || user.subject || 'Unknown User';
@@ -160,23 +163,30 @@ export class QlikAPIService {
           return 'Unknown User';
         }
       }
-  
+
       // Wait 100ms before retry
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-  
+
     console.warn('Access token not found after multiple attempts.');
     return 'Unknown User';
   }
-  
+
   /*saveToBackend() in QlikAPIService*/
   async saveToBackend(data: any[]): Promise<any> {
-    const res = await fetch(`${environment.backendUrl}/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return await res.json();
+    try {
+      const res = await fetch(`${environment.backendUrl}/api/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.error('Save to backend failed:', err);
+      return { message: 'Failed' };
+    }
   }
 
   /*Optional getFromBackend() if you want to load from /data*/

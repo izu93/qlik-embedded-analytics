@@ -1,0 +1,17 @@
+[
+  {
+    "AccountID": "ab91914",
+    "Churned_predicted": "no",
+    "ProbabilityOfChurn": "0%",
+    "BaseFee": "$21.78",
+    "HasRenewed": "no",
+    "PlanType": "Purple Plan",
+    "Status": "Reject",
+    "ActionTaken": "",
+    "Feedback": "",
+    "UpdatedAt": "5/04/2025, 12:38:55 AM",
+    "UpdatedBy": "Karthik Burra",
+    "changed": true,
+    "Comments": "changedddd"
+  }
+]
