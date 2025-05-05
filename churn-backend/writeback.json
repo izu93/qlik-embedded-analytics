@@ -1,17 +1,16 @@
 [
   {
-    "AccountID": "ab99185",
-    "Churned_predicted": "no",
-    "ProbabilityOfChurn": "0%",
-    "BaseFee": "$24.62",
-    "HasRenewed": "no",
+    "Account ID": "aa16889",
+    "Predicted to Churn?": "no",
+    "Probability of Churn": "1%",
+    "Base Fee": "$33.52",
+    "HasRenewed": "yes",
+    "Recieves Promotion?": "no",
     "PlanType": "Purple Plan",
-    "Status": "Approve",
-    "ActionTaken": "",
-    "Feedback": "",
-    "UpdatedAt": "5/04/2025, 11:07:37 AM",
-    "UpdatedBy": "Unknown User",
     "changed": true,
-    "Comments": "goooood"
+    "Status": "Approve",
+    "UpdatedAt": "5/04/2025, 09:38:47 PM",
+    "UpdatedBy": "Karthik Burra",
+    "Comments": "ok good"
   }
 ]

@@ -194,6 +194,64 @@ export class QlikAPIService {
     const res = await fetch(`${environment.backendUrl}/api/data`);
     return await res.json();
   }
+
+  async fetchPage(
+    appId: string,
+    objectId: string,
+    page: number,
+    pageSize: number
+  ): Promise<{ rows: any[]; totalRows: number }> {
+    try {
+      const appSession = openAppSession({ appId });
+      const app = await appSession.getDoc();
+      const obj = await app.getObject(objectId);
+      const layout = await obj.getLayout();
+      const hyperCube = layout.qHyperCube;
+
+      if (!hyperCube) throw new Error('No hypercube data.');
+
+      const totalRows = hyperCube.qSize?.qcy ?? 0;
+      const width =
+        (hyperCube.qDimensionInfo?.length ?? 0) +
+        (hyperCube.qMeasureInfo?.length ?? 0);
+
+      const qTop = (page - 1) * pageSize;
+      const qHeight = Math.min(pageSize, totalRows - qTop);
+
+      const data = await obj.getHyperCubeData('/qHyperCubeDef', [
+        {
+          qTop,
+          qLeft: 0,
+          qHeight,
+          qWidth: width,
+        },
+      ]);
+
+      const matrix = data[0]?.qMatrix || [];
+
+      const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
+        (d) => d.qFallbackTitle
+      );
+      const measureFields = (hyperCube.qMeasureInfo ?? []).map(
+        (m) => m.qFallbackTitle
+      );
+      const allFields = [...dimensionFields, ...measureFields];
+      const sortOrder =
+        hyperCube.qEffectiveInterColumnSortOrder || allFields.map((_, i) => i);
+      const fields = sortOrder.map((i) => allFields[i]);
+
+      const rows = matrix.map((row) =>
+        Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
+      );
+
+      console.log(`Page ${page} →`, rows);
+      return { rows, totalRows };
+    } catch (err) {
+      console.error('fetchPage() failed:', err);
+      return { rows: [], totalRows: 0 };
+    }
+  }
+
   /**
    * This method (commented out) is a full metadata fetcher:
    * - Gets master dimensions, measures, visualizations, and all fields.

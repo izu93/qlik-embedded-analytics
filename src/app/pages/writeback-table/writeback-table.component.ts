@@ -18,6 +18,8 @@ export class WritebackTableComponent {
   // Pagination state
   currentPage = 1;
   pageSize = 10;
+  totalRows = 0; // ← for total count
+  //pagedRows: any[] = [];
   min = Math.min;
 
   // Rows that have been saved successfully
@@ -41,10 +43,10 @@ export class WritebackTableComponent {
 
   // Column definitions used in the UI
   columnsToShow = [
-    { label: 'Account ID', field: 'AccountID' },
-    { label: 'Predicted to Churn?', field: 'Churned_predicted' },
-    { label: 'Probability of Churn', field: 'ProbabilityOfChurn' },
-    { label: 'Base Fee', field: 'BaseFee' },
+    { label: 'Account ID', field: 'Account ID' },
+    { label: 'Predicted to Churn?', field: 'Predicted to Churn?' },
+    { label: 'Probability of Churn', field: 'Probability of Churn' },
+    { label: 'Base Fee', field: 'Base Fee' },
     { label: 'Has Renewed', field: 'HasRenewed' },
     { label: 'Plan Type', field: 'PlanType' },
     { label: 'Status', field: 'Status' },
@@ -70,55 +72,49 @@ export class WritebackTableComponent {
   ngOnInit(): void {
     if (typeof window === 'undefined') return;
 
-    // Get current user name from Qlik
     this.qlikService.getCurrentUserName().then((name) => {
       this.userName = name;
       console.log('Logged in as:', name);
     });
 
-    //Check if saved data exists in localStorage
-    const saved = localStorage.getItem('writebackData');
-    if (saved) {
-      this.writebackData = JSON.parse(saved);
-      this.originalData = JSON.parse(saved);
-      console.log('Loaded data from localStorage:', this.writebackData);
-      return;
+    this.loadPage(this.currentPage);
+
+    // Load data from localStorage if available
+    const cached = localStorage.getItem('writebackData');
+    if (cached) {
+      this.writebackData = JSON.parse(cached);
+      this.originalData = JSON.parse(cached);
+    } else {
+      this.loadPage(this.currentPage);
     }
-
-    // Otherwise fetch from Qlik
-    this.qlikService
-      .getObjectData(this.objectId, this.appId)
-      .then((rows) => {
-        if (!rows) return;
-
-        this.writebackData = rows.map((row) => ({
-          AccountID: row['Account ID'] ?? '',
-          Churned_predicted: row['Predicted to Churn?'] ?? '',
-          ProbabilityOfChurn: row['Probability of Churn'] ?? '',
-          BaseFee: row['Base Fee'] ?? '',
-          HasRenewed: row['HasRenewed'] ?? '',
-          PlanType: row['PlanType'] ?? '',
-          Status: row['Status'] ?? '',
-          ActionTaken: row['ActionTaken'] ?? '',
-          UpdatedAt: row['UpdatedAt'] ? new Date(row['UpdatedAt']) : '',
-          UpdatedBy: row['UpdatedBy'] ?? '',
-          Comments: row['Comments'] ?? '',
-          changed: false,
-        }));
-
-        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
-        console.log('Loaded data:', this.writebackData);
-      })
-      .catch((err) => console.error('Error loading Qlik data:', err));
-
-    // Add default Comments field if not present
-    this.data.forEach((row: any) => {
-      if (!row.hasOwnProperty('Comments')) {
-        row['Comments'] = '';
-      }
-    });
   }
 
+  async loadPage(page: number): Promise<void> {
+    this.currentPage = page;
+    const result = await this.qlikService.fetchPage(
+      this.appId,
+      this.objectId,
+      page,
+      this.pageSize
+    );
+
+    // Expecting: { rows: [], totalCount: 1000 }
+    const rows = result.rows;
+    this.totalRows = result.totalRows;
+    console.log('Qlik Data:', rows);
+    console.log('Total Rows:', this.totalRows);
+
+    this.writebackData = rows.map((row) => ({
+      ...row,
+      changed: false,
+    }));
+    this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+  }
+
+  // Getter to slice current paginated view
+  get pagedRows() {
+    return this.writebackData;
+  }
   // Marks a row and optionally a field as changed
   markChanged(row: any, field?: string) {
     row.changed = true;
@@ -183,21 +179,17 @@ export class WritebackTableComponent {
     return sorted;
   }
 
-  // Returns current page of sorted rows
-  get pagedRows() {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.sortedRows.slice(start, start + this.pageSize);
-  }
-
   // Navigate to next page
   nextPage() {
-    if (this.currentPage * this.pageSize < this.filteredRows.length)
-      this.currentPage++;
+    if (this.currentPage * this.pageSize < this.totalRows) {
+      this.loadPage(this.currentPage + 1);
+    }
   }
-
   // Navigate to previous page
   previousPage() {
-    if (this.currentPage > 1) this.currentPage--;
+    if (this.currentPage > 1) {
+      this.loadPage(this.currentPage - 1);
+    }
   }
 
   // Check if any row has been modified
@@ -205,37 +197,54 @@ export class WritebackTableComponent {
     return this.writebackData.some((row) => row.changed);
   }
 
+  getChangedRows(): any[] {
+    return this.writebackData.filter((row) => row.changed);
+  }
+
   // Simulate saving changes and reset changed flags
   //Call saveToBackend() inside saveChanges()
   saveChanges() {
     this.isSaving = true;
     const changedRows = this.getChangedRows();
+    console.log('Saving to backend:', changedRows);
 
-    this.qlikService.saveToBackend(changedRows).then(() => {
-      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
-      this.rowSaved = [];
-      this.writebackData.forEach((row) => {
-        if (row.changed) {
-          row.changed = false;
-          this.rowSaved.push(row.AccountID);
-        }
+    this.qlikService
+      .saveToBackend(changedRows)
+      .then(() => {
+        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+        this.rowSaved = [];
+
+        this.writebackData.forEach((row) => {
+          if (row.changed) {
+            row.changed = false;
+            this.rowSaved.push(row['Account ID']);
+          }
+        });
+
+        this.isSaving = false;
+        setTimeout(() => (this.rowSaved = []), 2000);
+      })
+      .catch((err) => {
+        console.error('Save to backend failed:', err);
+        this.isSaving = false;
       });
-      localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
-      this.isSaving = false;
-      setTimeout(() => (this.rowSaved = []), 2000);
-    });
+    //Save to localStorage after Save
+    localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
   }
-
   // Reset a single row to its original state
   resetRow(row: any) {
     const original = this.originalData.find(
-      (r) => r.AccountID === row.AccountID
+      (r) => r['Account ID'] === row['Account ID']
     );
     if (original) Object.assign(row, { ...original, changed: false });
   }
 
-  getChangedRows(): any[] {
-    return this.writebackData.filter((row: any) => row.changed);
+  // Converts any input to integer (used for % bar display)
+  parseInt(value: any): number {
+    return Number.parseInt(
+      value?.toString().replace('%', '').trim() || '0',
+      10
+    );
   }
 
   // Removed duplicate saveChanges() implementation
@@ -247,10 +256,10 @@ export class WritebackTableComponent {
       : this.writebackData;
 
     const exportFields = [
-      'AccountID',
-      'Churned_predicted',
-      'ProbabilityOfChurn',
-      'BaseFee',
+      'Account ID',
+      'Predicted to Churn?',
+      'Probability of Churn',
+      'Base Fee',
       'HasRenewed',
       'PlanType',
       'Status',
@@ -304,19 +313,11 @@ export class WritebackTableComponent {
     window.URL.revokeObjectURL(url);
   }
 
-  // Converts any input to integer (used for % bar display)
-  parseInt(value: any): number {
-    return Number.parseInt(
-      value?.toString().replace('%', '').trim() || '0',
-      10
-    );
-  }
-
   //to reset the localStorage and reload the page
   // This is useful for testing purposes, but should be removed in production
   confirmAndClearLocalCache() {
     const confirmed = window.confirm(
-      '⚠️This will remove all saved writeback data and reload the app.\nAre you sure you want to proceed?'
+      'This will remove all saved writeback data and reload the app.\nAre you sure you want to proceed?'
     );
 
     if (confirmed) {
