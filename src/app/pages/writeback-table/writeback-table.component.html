@@ -111,7 +111,7 @@
             <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200">
               <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
               <ng-container
-                *ngIf="col.field === 'Churned_predicted'; else defaultCell"
+                *ngIf="col.field === 'Predicted to Churn?'; else defaultCell"
               >
                 <span class="relative group inline-block cursor-pointer">
                   <span
@@ -150,7 +150,7 @@
               <ng-template #defaultCell>
                 <!-- Progress bar for 'Probability of Churn' -->
                 <ng-container
-                  *ngIf="col.field === 'ProbabilityOfChurn'; else statusCheck"
+                  *ngIf="col.field === 'Probability of Churn'; else statusCheck"
                 >
                   <div class="w-full">
                     <div class="flex items-center gap-2" [style.width.px]="150">
@@ -279,10 +279,10 @@
   <div class="flex justify-between items-center mt-6">
     <p class="text-sm text-gray-500 dark:text-gray-400">
       Showing {{ (currentPage - 1) * pageSize + 1 }}–{{
-        min(currentPage * pageSize, filteredRows.length)
+        min(currentPage * pageSize, totalRows)
       }}
       of
-      {{ filteredRows.length }}
+      {{ totalRows }} records
     </p>
     <div class="flex gap-4 items-center">
       <button
@@ -295,7 +295,7 @@
       <span class="text-sm">{{ currentPage }}</span>
       <button
         (click)="nextPage()"
-        [disabled]="currentPage * pageSize >= filteredRows.length"
+        [disabled]="currentPage * pageSize >= totalRows"
         class="px-3 py-1 rounded bg-gray-300 text-sm hover:bg-gray-400 disabled:opacity-50"
       >
         Next →

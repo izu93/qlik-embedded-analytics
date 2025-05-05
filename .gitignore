@@ -11,6 +11,8 @@
 
 # Node
 /node_modules
+/churn-backend/node_modules
+/churn-backend/dist
 npm-debug.log
 yarn-error.log
 

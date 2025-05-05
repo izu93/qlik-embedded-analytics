@@ -139,19 +139,22 @@ export class QlikAPIService {
    */
   async getCurrentUserName(): Promise<string> {
     if (!this.isBrowser) return 'Server';
-  
+
     // Retry logic for token availability
     for (let attempt = 0; attempt < 10; attempt++) {
       const token = this.getAccessTokenFromSessionStorage();
       if (token) {
         try {
-          const response = await fetch(`https://${this.qlikConfig.host}/api/v1/users/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-  
+          const response = await fetch(
+            `https://${this.qlikConfig.host}/api/v1/users/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const user = await response.json();
           return user.name || user.email || user.subject || 'Unknown User';
@@ -160,15 +163,94 @@ export class QlikAPIService {
           return 'Unknown User';
         }
       }
-  
+
       // Wait 100ms before retry
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-  
+
     console.warn('Access token not found after multiple attempts.');
     return 'Unknown User';
   }
-  
+
+  /*saveToBackend() in QlikAPIService*/
+  async saveToBackend(data: any[]): Promise<any> {
+    try {
+      const res = await fetch(`${environment.backendUrl}/api/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.error('Save to backend failed:', err);
+      return { message: 'Failed' };
+    }
+  }
+
+  /*Optional getFromBackend() if you want to load from /data*/
+  async getFromBackend(): Promise<any[]> {
+    const res = await fetch(`${environment.backendUrl}/api/data`);
+    return await res.json();
+  }
+
+  async fetchPage(
+    appId: string,
+    objectId: string,
+    page: number,
+    pageSize: number
+  ): Promise<{ rows: any[]; totalRows: number }> {
+    try {
+      const appSession = openAppSession({ appId });
+      const app = await appSession.getDoc();
+      const obj = await app.getObject(objectId);
+      const layout = await obj.getLayout();
+      const hyperCube = layout.qHyperCube;
+
+      if (!hyperCube) throw new Error('No hypercube data.');
+
+      const totalRows = hyperCube.qSize?.qcy ?? 0;
+      const width =
+        (hyperCube.qDimensionInfo?.length ?? 0) +
+        (hyperCube.qMeasureInfo?.length ?? 0);
+
+      const qTop = (page - 1) * pageSize;
+      const qHeight = Math.min(pageSize, totalRows - qTop);
+
+      const data = await obj.getHyperCubeData('/qHyperCubeDef', [
+        {
+          qTop,
+          qLeft: 0,
+          qHeight,
+          qWidth: width,
+        },
+      ]);
+
+      const matrix = data[0]?.qMatrix || [];
+
+      const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
+        (d) => d.qFallbackTitle
+      );
+      const measureFields = (hyperCube.qMeasureInfo ?? []).map(
+        (m) => m.qFallbackTitle
+      );
+      const allFields = [...dimensionFields, ...measureFields];
+      const sortOrder =
+        hyperCube.qEffectiveInterColumnSortOrder || allFields.map((_, i) => i);
+      const fields = sortOrder.map((i) => allFields[i]);
+
+      const rows = matrix.map((row) =>
+        Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
+      );
+
+      console.log(`Page ${page} →`, rows);
+      return { rows, totalRows };
+    } catch (err) {
+      console.error('fetchPage() failed:', err);
+      return { rows: [], totalRows: 0 };
+    }
+  }
 
   /**
    * This method (commented out) is a full metadata fetcher:
