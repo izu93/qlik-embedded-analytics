@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./writeback-table.component.css'],
 })
 export class WritebackTableComponent {
+  loading = false;
   // Search term for filtering rows
   searchTerm = '';
 
@@ -84,13 +85,18 @@ export class WritebackTableComponent {
     if (cached) {
       this.writebackData = JSON.parse(cached);
       this.originalData = JSON.parse(cached);
+      console.log('Loaded from localStorage:');
+      console.log('writebackData:', this.writebackData);
+      console.log('originalData:', this.originalData);
     } else {
       this.loadPage(this.currentPage);
     }
   }
 
   async loadPage(page: number): Promise<void> {
+    this.loading = true;
     this.currentPage = page;
+
     const result = await this.qlikService.fetchPage(
       this.appId,
       this.objectId,
@@ -98,17 +104,28 @@ export class WritebackTableComponent {
       this.pageSize
     );
 
-    // Expecting: { rows: [], totalCount: 1000 }
-    const rows = result.rows;
+    const freshRows = result.rows;
     this.totalRows = result.totalRows;
-    console.log('Qlik Data:', rows);
-    console.log('Total Rows:', this.totalRows);
 
-    this.writebackData = rows.map((row) => ({
-      ...row,
-      changed: false,
-    }));
-    this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+    const saved = JSON.parse(localStorage.getItem('writebackData') || '[]');
+
+    const merged = freshRows.map((row: any) => {
+      const match = saved.find(
+        (edited: any) => edited['Account ID'] === row['Account ID']
+      );
+
+      if (match) {
+        const mergedRow = { ...row, ...match };
+        mergedRow.changed = false;
+        return mergedRow;
+      }
+
+      return { ...row, changed: false };
+    });
+
+    this.writebackData = merged;
+    this.originalData = JSON.parse(JSON.stringify(merged));
+    this.loading = false;
   }
 
   // Getter to slice current paginated view
@@ -228,8 +245,17 @@ export class WritebackTableComponent {
         console.error('Save to backend failed:', err);
         this.isSaving = false;
       });
-    //Save to localStorage after Save
-    localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
+    const stored = JSON.parse(localStorage.getItem('writebackData') || '[]');
+    const filtered = stored.filter(
+      (oldRow: any) =>
+        !changedRows.some(
+          (newRow) => newRow['Account ID'] === oldRow['Account ID']
+        )
+    );
+    localStorage.setItem(
+      'writebackData',
+      JSON.stringify([...filtered, ...changedRows])
+    );
   }
   // Reset a single row to its original state
   resetRow(row: any) {
