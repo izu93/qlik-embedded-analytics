@@ -60,6 +60,18 @@
       />
     </label>
   </div>
+  <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
+    <label class="flex items-center gap-1">
+      <span>ARR Width:</span>
+      <input
+        type="range"
+        min="80"
+        max="300"
+        [(ngModel)]="ARRWidth"
+        class="w-32"
+      />
+    </label>
+  </div>
 
   <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center text-sm py-4 text-gray-600">
@@ -119,7 +131,7 @@
         >
           <!-- Iterate over columns and apply custom rendering logic -->
           <ng-container *ngFor="let col of columnsToShow; let c = index">
-            <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200">
+            <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200" [style.width.px]="col.field === 'ARR' ? ARRWidth : null">
               <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
               <ng-container
                 *ngIf="col.field === 'Overall Renewal Risk'; else defaultCell"
@@ -212,8 +224,8 @@
                         <option [ngValue]="null" class="disabled selected">
                           Select...
                         </option>
-                        <option value="Approve">👍 Approve</option>
-                        <option value="Reject">👎 Reject</option>
+                        <option value="Approve">👍 Thumbs up</option>
+                        <option value="Reject">👎 Thumbs down</option>
                         <option value="null">N/A</option>
                       </select>
                       <span

@@ -40,7 +40,8 @@ export class WritebackTableComponent {
   //rrentUser: string = 'Unknown User';
   userName: string = '';
 
-  statusWidth = 140;
+  statusWidth = 150;
+  ARRWidth = 130;
 
   // Column definitions used in the UI
   columnsToShow = [
