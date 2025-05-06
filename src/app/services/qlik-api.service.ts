@@ -61,27 +61,19 @@ export class QlikAPIService {
    */
   async getObjectData(objectId: string, appId: string): Promise<any[]> {
     try {
-      // Open a session with the specified Qlik app
       const appSession = openAppSession({ appId });
-      window.x = appSession; // Debugging: expose appSession to the global window object
+      window.x = appSession;
 
-      // Get the document handle (app interface)
       const app = await appSession.getDoc();
-
-      // Retrieve the object by ID (e.g., a chart/table object)
       const obj = await app.getObject(objectId);
-
-      // Get layout metadata for the object (includes cube definition)
       const layout = await obj.getLayout();
       const hyperCube = layout.qHyperCube;
 
-      // Guard: If the object is not a hypercube or is missing cube data
       if (!hyperCube) {
         console.warn('Object is not a hypercube or missing cube data.');
         return [];
       }
 
-      // Fetch up to 1000 rows of data from the hypercube
       const data = await obj.getHyperCubeData('/qHyperCubeDef', [
         {
           qTop: 0,
@@ -93,41 +85,27 @@ export class QlikAPIService {
         },
       ]);
 
-      // Extract the actual matrix of data rows
       const matrix = data?.[0]?.qMatrix ?? [];
-
-      // If no data was returned from the matrix
       if (!matrix.length) {
-        console.warn('Still no rows from HyperCube fetch.');
+        console.warn('No rows returned from hypercube.');
         return [];
       }
 
-      // Extract labels for dimensions and measures
       const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
-        (d: any) => d.qFallbackTitle
+        (d) => d.qFallbackTitle
       );
       const measureFields = (hyperCube.qMeasureInfo ?? []).map(
-        (m: any) => m.qFallbackTitle
+        (m) => m.qFallbackTitle
       );
-      const allFields = [...dimensionFields, ...measureFields];
+      const fields = [...dimensionFields, ...measureFields];
 
-      // Apply sort order based on effective visual column order
-      const sortOrder =
-        hyperCube.qEffectiveInterColumnSortOrder ?? allFields.map((_, i) => i);
-      const fields = sortOrder.map((i) => allFields[i]);
-
-      // Map each matrix row to a structured object with field names as keys
       const rows = matrix.map((row) =>
-        Object.fromEntries(
-          row.map((cell: any, i: number) => [fields[i], cell.qText])
-        )
+        Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
       );
 
-      // Log result and return mapped rows
-      console.log('Extracted object data (via getHyperCubeData):', rows);
+      console.log('Extracted object data (fixed order):', rows);
       return rows;
     } catch (err) {
-      // Log and return empty array on error
       console.error('getObjectData failed:', err);
       return [];
     }
@@ -173,20 +151,24 @@ export class QlikAPIService {
   }
 
   /*saveToBackend() in QlikAPIService*/
-  async saveToBackend(data: any[]): Promise<any> {
-    try {
-      const res = await fetch(`${environment.backendUrl}/api/save`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+  saveToBackend(changedRows: any[]): Promise<any> {
+    return fetch('/api/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(changedRows),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to save data to backend');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('✅ Backend Save Response:', data);
+        return data;
       });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      console.error('Save to backend failed:', err);
-      return { message: 'Failed' };
-    }
   }
 
   /*Optional getFromBackend() if you want to load from /data*/
@@ -229,16 +211,14 @@ export class QlikAPIService {
 
       const matrix = data[0]?.qMatrix || [];
 
+      // ❗ Strict field order: do not use qEffectiveInterColumnSortOrder
       const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
         (d) => d.qFallbackTitle
       );
       const measureFields = (hyperCube.qMeasureInfo ?? []).map(
         (m) => m.qFallbackTitle
       );
-      const allFields = [...dimensionFields, ...measureFields];
-      const sortOrder =
-        hyperCube.qEffectiveInterColumnSortOrder || allFields.map((_, i) => i);
-      const fields = sortOrder.map((i) => allFields[i]);
+      const fields = [...dimensionFields, ...measureFields];
 
       const rows = matrix.map((row) =>
         Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
