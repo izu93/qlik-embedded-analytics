@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./writeback-table.component.css'],
 })
 export class WritebackTableComponent {
+  loading = false;
   // Search term for filtering rows
   searchTerm = '';
 
@@ -43,18 +44,19 @@ export class WritebackTableComponent {
 
   // Column definitions used in the UI
   columnsToShow = [
-    { label: 'Account ID', field: 'Account ID' },
-    { label: 'Predicted to Churn?', field: 'Predicted to Churn?' },
-    { label: 'Probability of Churn', field: 'Probability of Churn' },
-    { label: 'Base Fee', field: 'Base Fee' },
-    { label: 'Has Renewed', field: 'HasRenewed' },
-    { label: 'Plan Type', field: 'PlanType' },
+    { label: 'URL', field: 'URL' },
+    { label: 'Account', field: 'Account' },
+    { label: 'Renewal Qtr', field: 'Renewal Qtr' },
+    { label: 'Predicted to Churn', field: 'Overall Renewal Risk' },
+    { label: 'Prob of Churn', field: 'Prob of Churn' },
+    { label: 'Account Health Risk', field: 'Account Health Risk' },
+    { label: 'SaaS Adoption Risk', field: 'SaaS Adoption Risk' },
+    { label: 'ARR', field: 'ARR' },
     { label: 'Status', field: 'Status' },
-    { label: 'Updated At', field: 'Updated At', hidden: true }, //  hidden
-    { label: 'Updated By', field: 'Updated By', hidden: true }, //  hidden
-    { label: 'Comments', field: 'Comments', hidden: true }, //  hidden
+    { label: 'Updated At', field: 'Updated At', hidden: true },
+    { label: 'Updated By', field: 'Updated By', hidden: true },
+    { label: 'Comments', field: 'Comments', hidden: true },
   ];
-
   // Live dataset for editing
   writebackData: any[] = [];
 
@@ -77,38 +79,53 @@ export class WritebackTableComponent {
       console.log('Logged in as:', name);
     });
 
-    this.loadPage(this.currentPage);
+    // Always load from Qlik first
+    this.loadPage(this.currentPage).then(() => {
+      const cached = localStorage.getItem('writebackData');
+      if (cached) {
+        const savedRows = JSON.parse(cached);
 
-    // Load data from localStorage if available
-    const cached = localStorage.getItem('writebackData');
-    if (cached) {
-      this.writebackData = JSON.parse(cached);
-      this.originalData = JSON.parse(cached);
-    } else {
-      this.loadPage(this.currentPage);
-    }
+        // Merge local storage edits into Qlik-fetched data
+        this.writebackData = this.writebackData.map((row) => {
+          const match = savedRows.find(
+            (saved: any) => saved['Account'] === row['Account']
+          );
+          return match ? { ...row, ...match, changed: false } : row;
+        });
+
+        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+
+        console.log('Local storage edits merged into Qlik data');
+      }
+    });
   }
 
   async loadPage(page: number): Promise<void> {
+    this.loading = true;
     this.currentPage = page;
-    const result = await this.qlikService.fetchPage(
-      this.appId,
-      this.objectId,
-      page,
-      this.pageSize
-    );
 
-    // Expecting: { rows: [], totalCount: 1000 }
-    const rows = result.rows;
-    this.totalRows = result.totalRows;
-    console.log('Qlik Data:', rows);
-    console.log('Total Rows:', this.totalRows);
+    try {
+      const result = await this.qlikService.fetchPage(
+        this.appId,
+        this.objectId,
+        page,
+        this.pageSize
+      );
 
-    this.writebackData = rows.map((row) => ({
-      ...row,
-      changed: false,
-    }));
-    this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      const freshRows = result.rows;
+      this.totalRows = result.totalRows;
+      console.log(`Loaded ${freshRows.length} rows from Qlik (page ${page})`);
+
+      // Clear current writebackData to avoid appending duplicates
+      this.writebackData = [
+        ...freshRows.map((r) => ({ ...r, changed: false })),
+      ];
+      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+    } catch (error) {
+      console.error('Error loading Qlik data:', error);
+    } finally {
+      this.loading = false;
+    }
   }
 
   // Getter to slice current paginated view
@@ -211,15 +228,36 @@ export class WritebackTableComponent {
     this.qlikService
       .saveToBackend(changedRows)
       .then(() => {
+        // Mark rows as saved
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
         this.rowSaved = [];
 
         this.writebackData.forEach((row) => {
           if (row.changed) {
             row.changed = false;
-            this.rowSaved.push(row['Account ID']);
+            this.rowSaved.push(row['Account']);
           }
         });
+
+        // Merge with localStorage instead of replacing completely
+        const existing = JSON.parse(
+          localStorage.getItem('writebackData') || '[]'
+        );
+
+        const updatedStorage = existing.map((row: any) => {
+          const match = changedRows.find(
+            (newRow: any) => newRow['Account'] === row['Account']
+          );
+          return match ? { ...row, ...match } : row;
+        });
+
+        const newRows = changedRows.filter(
+          (row: any) =>
+            !existing.some((r: any) => r['Account'] === row['Account'])
+        );
+
+        const finalStorage = [...updatedStorage, ...newRows];
+        localStorage.setItem('writebackData', JSON.stringify(finalStorage));
 
         this.isSaving = false;
         setTimeout(() => (this.rowSaved = []), 2000);
@@ -228,9 +266,8 @@ export class WritebackTableComponent {
         console.error('Save to backend failed:', err);
         this.isSaving = false;
       });
-    //Save to localStorage after Save
-    localStorage.setItem('writebackData', JSON.stringify(this.writebackData));
   }
+
   // Reset a single row to its original state
   resetRow(row: any) {
     const original = this.originalData.find(

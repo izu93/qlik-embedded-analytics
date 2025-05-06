@@ -6,7 +6,7 @@ const path = require("path");
 
 const app = express();
 const PORT = 3000;
-
+const writebackFile = path.join(__dirname, "writeback.json");
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -18,18 +18,46 @@ app.get("/", (req, res) => {
 
 // Save writeback data to file
 app.post("/api/save", (req, res) => {
-  const data = req.body;
+  const newRows = req.body;
 
-  try {
-    fs.writeFileSync(
-      path.join(__dirname, "writeback.json"),
-      JSON.stringify(data, null, 2)
-    );
-    res.status(200).send({ message: "Data saved successfully." });
-  } catch (error) {
-    console.error("Error writing file:", error);
-    res.status(500).send({ message: "Failed to save data." });
+  if (!Array.isArray(newRows)) {
+    return res.status(400).json({ error: "Invalid data format" });
   }
+
+  // Read existing data
+  fs.readFile(writebackFile, "utf8", (readErr, data) => {
+    let existing = [];
+
+    if (!readErr && data) {
+      try {
+        existing = JSON.parse(data);
+      } catch (parseErr) {
+        console.error("Failed to parse existing data:", parseErr);
+      }
+    }
+
+    // Merge: replace if Account matches, otherwise keep
+    const updated = [
+      ...existing.filter(
+        (oldRow) => !newRows.some((newRow) => newRow.Account === oldRow.Account)
+      ),
+      ...newRows,
+    ];
+
+    // Write back merged array
+    fs.writeFile(
+      writebackFile,
+      JSON.stringify(updated, null, 2),
+      (writeErr) => {
+        if (writeErr) {
+          console.error("Failed to write file:", writeErr);
+          return res.status(500).json({ error: "Failed to save data" });
+        }
+
+        res.json({ message: "Data merged and saved successfully" });
+      }
+    );
+  });
 });
 
 // Optional: Load data back from file

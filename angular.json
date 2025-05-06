@@ -65,7 +65,8 @@
               "buildTarget": "churn-ananlytics-dashboard:build:production"
             },
             "development": {
-              "buildTarget": "churn-ananlytics-dashboard:build:development"
+              "buildTarget": "churn-ananlytics-dashboard:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

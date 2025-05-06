@@ -61,6 +61,11 @@
     </label>
   </div>
 
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="text-center text-sm py-4 text-gray-600">
+    Loading...
+  </div>
+
   <!-- Table container -->
   <div class="flex-1 overflow-auto max-w-full rounded-lg shadow">
     <table class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
@@ -74,7 +79,12 @@
             <th
               *ngIf="!col.hidden"
               class="px-4 py-2 text-left cursor-pointer select-none border-r border-gray-300"
-              (click)="setSort(col.field)"
+              (click)="
+                col.field !== 'Status' &&
+                  col.field !== 'Comments' &&
+                  col.label !== 'Reset' &&
+                  setSort(col.field)
+              "
             >
               {{ col.label }}
               <span
@@ -96,9 +106,10 @@
       </thead>
 
       <!-- Table body -->
-      <tbody>
+      <tbody *ngIf="!loading">
         <tr
-          *ngFor="let row of pagedRows; let i = index"
+          *ngFor="let row of sortedRows; let i = index"
+          [class.highlight]="row.changed"
           [ngClass]="{
             'border-b text-sm': true,
 
@@ -107,7 +118,7 @@
           }"
         >
           <!-- Iterate over columns and apply custom rendering logic -->
-          <ng-container *ngFor="let col of columnsToShow">
+          <ng-container *ngFor="let col of columnsToShow; let c = index">
             <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200">
               <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
               <ng-container
@@ -235,6 +246,13 @@
                   <ng-template #plainValue>
                     <span class="text-xs text-gray-800 dark:text-gray-200">
                       {{ getValue(row, col.field) || "—" }}
+                      <span
+                        *ngIf="row.changed && c === 0"
+                        class="ml-1 inline-block text-blue-500 animate-pulse"
+                        title="Unsaved changes"
+                      >
+                        •
+                      </span>
                     </span>
                   </ng-template>
                 </ng-template>

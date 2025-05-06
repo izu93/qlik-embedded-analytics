@@ -1,40 +1,41 @@
 /*  Glow animation for edited rows */
 @keyframes glowEdited {
-    from {
-        background-color: #e9dcff;
-        /* Light yellow */
-    }
+  from {
+    background-color: #e9dcff;
+    /* Light yellow */
+  }
 
-    to {
-        background-color: #4447eb;
-        /* Softer yellow */
-    }
+  to {
+    background-color: #4447eb;
+    /* Softer yellow */
+  }
 }
 
 .row-edited {
-    animation: glowEdited 0.6s ease-in-out;
-    background-color: #7199f0 !important;
+  animation: glowEdited 0.6s ease-in-out;
+  background-color: #aec4f3 !important;
 }
 
 /* Subtle saved row green highlight */
 .row-saved {
-    animation: flash-green 1.5s ease-out;
+  animation: flash-green 1.5s ease-out;
 }
 
 @keyframes flash-green {
-    0% {
-        background-color: #d1fae5;
-        /* light green */
-    }
+  0% {
+    background-color: #d1fae5;
+    /* light green */
+  }
 
-    100% {
-        background-color: inherit;
-    }
+  100% {
+    background-color: inherit;
+  }
 }
 
 tr {
-    transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
+
 th {
   user-select: none;
 }
@@ -42,4 +43,23 @@ th span {
   font-size: 0.75rem;
   margin-left: 0.25rem;
   color: #6b7280;
+}
+.unsaved-badge {
+  color: #870f6c; 
+  font-size: 1.5em;
+  vertical-align: middle;
+  margin-left: 4px;
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
 }
