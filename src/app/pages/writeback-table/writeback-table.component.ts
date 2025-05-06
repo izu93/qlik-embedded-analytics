@@ -284,6 +284,11 @@ export class WritebackTableComponent {
     );
   }
 
+  // Converts percentage string to float (e.g., "72.3%" → 72.3)
+  parseFloatPercent(value: any): number {
+    return parseFloat(value?.toString().replace('%', '').trim() || '0');
+  }
+
   // Removed duplicate saveChanges() implementation
 
   // Export all current rows to CSV format
