@@ -245,7 +245,21 @@
                   </ng-container>
                   <ng-template #plainValue>
                     <span class="text-xs text-gray-800 dark:text-gray-200">
-                      {{ getValue(row, col.field) || "—" }}
+                      <ng-container
+                        *ngIf="col.field === 'URL'; else showPlainText"
+                      >
+                        <a
+                          [href]="getValue(row, col.field)"
+                          target="_blank"
+                          class="text-blue-600 underline"
+                        >
+                          SFDC
+                        </a>
+                      </ng-container>
+                      <ng-template #showPlainText>
+                        {{ getValue(row, col.field) || "—" }}
+                      </ng-template>
+
                       <span
                         *ngIf="row.changed && c === 0"
                         class="ml-1 inline-block text-blue-500 animate-pulse"
