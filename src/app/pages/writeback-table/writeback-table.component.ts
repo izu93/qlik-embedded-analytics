@@ -54,7 +54,7 @@ export class WritebackTableComponent {
     { label: 'SaaS Adoption Risk', field: 'Prob of Churn' },
 
     { label: 'ARR', field: 'ARR' },
-    { label: 'Status', field: 'Status' },
+    { label: 'Model Feedback', field: 'Status' },
     { label: 'Updated At', field: 'Updated At', hidden: true },
     { label: 'Updated By', field: 'Updated By', hidden: true },
     { label: 'Comments', field: 'Comments', hidden: true },
