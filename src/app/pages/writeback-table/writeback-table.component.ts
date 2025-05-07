@@ -40,19 +40,21 @@ export class WritebackTableComponent {
   //rrentUser: string = 'Unknown User';
   userName: string = '';
 
-  statusWidth = 140;
+  statusWidth = 150;
+  ARRWidth = 130;
 
   // Column definitions used in the UI
   columnsToShow = [
     { label: 'URL', field: 'URL' },
     { label: 'Account', field: 'Account' },
     { label: 'Renewal Qtr', field: 'Renewal Qtr' },
-    { label: 'Predicted to Churn', field: 'Overall Renewal Risk' },
-    { label: 'Prob of Churn', field: 'Prob of Churn' },
-    { label: 'Account Health Risk', field: 'Account Health Risk' },
-    { label: 'SaaS Adoption Risk', field: 'SaaS Adoption Risk' },
+    { label: 'Prob of Churn', field: 'Overall Renewal Risk' },
+    { label: 'Overall Renewal Risk', field: 'Account Health Risk' },
+    { label: 'Account Health Risk', field: 'SaaS Adoption Risk' },
+    { label: 'SaaS Adoption Risk', field: 'Prob of Churn' },
+
     { label: 'ARR', field: 'ARR' },
-    { label: 'Status', field: 'Status' },
+    { label: 'Model Feedback', field: 'Status' },
     { label: 'Updated At', field: 'Updated At', hidden: true },
     { label: 'Updated By', field: 'Updated By', hidden: true },
     { label: 'Comments', field: 'Comments', hidden: true },
@@ -282,6 +284,11 @@ export class WritebackTableComponent {
       value?.toString().replace('%', '').trim() || '0',
       10
     );
+  }
+
+  // Converts percentage string to float (e.g., "72.3%" → 72.3)
+  parseFloatPercent(value: any): number {
+    return parseFloat(value?.toString().replace('%', '').trim() || '0');
   }
 
   // Removed duplicate saveChanges() implementation

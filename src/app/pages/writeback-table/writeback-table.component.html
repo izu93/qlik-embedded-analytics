@@ -60,6 +60,18 @@
       />
     </label>
   </div>
+  <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
+    <label class="flex items-center gap-1">
+      <span>ARR Width:</span>
+      <input
+        type="range"
+        min="80"
+        max="300"
+        [(ngModel)]="ARRWidth"
+        class="w-32"
+      />
+    </label>
+  </div>
 
   <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center text-sm py-4 text-gray-600">
@@ -119,42 +131,39 @@
         >
           <!-- Iterate over columns and apply custom rendering logic -->
           <ng-container *ngFor="let col of columnsToShow; let c = index">
-            <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200">
+            <td *ngIf="!col.hidden" class="px-4 py-2 border-r border-gray-200" [style.width.px]="col.field === 'ARR' ? ARRWidth : null">
               <!-- Custom logic for 'Predicted to Churn' with badge and tooltip -->
               <ng-container
-                *ngIf="col.field === 'Predicted to Churn?'; else defaultCell"
+                *ngIf="col.field === 'Overall Renewal Risk'; else defaultCell"
               >
-                <span class="relative group inline-block cursor-pointer">
-                  <span
-                    class="px-2 py-1 rounded-full text-xs font-semibold text-white"
-                    [ngClass]="
-                      getValue(row, col.field)?.toLowerCase() === 'churn' ||
-                      getValue(row, col.field)?.toLowerCase() === 'yes'
-                        ? 'bg-red-500'
-                        : 'bg-green-500'
-                    "
-                  >
-                    {{
-                      getValue(row, col.field)?.toLowerCase() === "churn" ||
-                      getValue(row, col.field)?.toLowerCase() === "yes"
-                        ? "Churn"
-                        : "No Churn"
-                    }}
-                  </span>
-                  <span
-                    class="absolute z-10 left-1/2 -translate-x-1/2 bottom-full mb-2 text-xs text-white bg-black bg-opacity-75 px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap"
-                  >
-                    {{
-                      getValue(row, col.field)?.toLowerCase() === "churn" ||
-                      getValue(row, col.field)?.toLowerCase() === "yes"
-                        ? "High churn risk"
-                        : "Stable customer"
-                    }}
+                <div class="w-full">
+                  <div class="flex items-center gap-2" [style.width.px]="150">
+                    <div
+                      class="w-full h-2 rounded bg-gray-200 dark:bg-gray-700"
+                    >
+                      <div
+                        class="h-full rounded"
+                        [ngClass]="{
+                          'bg-red-500':
+                            parseFloatPercent(getValue(row, col.field)) > 75,
+                          'bg-yellow-500':
+                            parseFloatPercent(getValue(row, col.field)) > 50 &&
+                            parseFloatPercent(getValue(row, col.field)) <= 75,
+                          'bg-green-500':
+                            parseFloatPercent(getValue(row, col.field)) <= 50
+                        }"
+                        [style.width.%]="
+                          parseFloatPercent(getValue(row, col.field))
+                        "
+                      ></div>
+                    </div>
                     <span
-                      class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-100 rotate-45"
-                    ></span>
-                  </span>
-                </span>
+                      class="text-xs font-medium text-gray-800 dark:text-white"
+                    >
+                      {{ getValue(row, col.field) }}
+                    </span>
+                  </div>
+                </div>
               </ng-container>
 
               <!-- Fallback/default rendering logic -->
@@ -215,8 +224,8 @@
                         <option [ngValue]="null" class="disabled selected">
                           Select...
                         </option>
-                        <option value="Approve">👍 Approve</option>
-                        <option value="Reject">👎 Reject</option>
+                        <option value="Approve">👍 Thumbs up</option>
+                        <option value="Reject">👎 Thumbs down</option>
                         <option value="null">N/A</option>
                       </select>
                       <span
@@ -245,7 +254,21 @@
                   </ng-container>
                   <ng-template #plainValue>
                     <span class="text-xs text-gray-800 dark:text-gray-200">
-                      {{ getValue(row, col.field) || "—" }}
+                      <ng-container
+                        *ngIf="col.field === 'URL'; else showPlainText"
+                      >
+                        <a
+                          [href]="getValue(row, col.field)"
+                          target="_blank"
+                          class="text-blue-600 underline"
+                        >
+                          SFDC
+                        </a>
+                      </ng-container>
+                      <ng-template #showPlainText>
+                        {{ getValue(row, col.field) || "—" }}
+                      </ng-template>
+
                       <span
                         *ngIf="row.changed && c === 0"
                         class="ml-1 inline-block text-blue-500 animate-pulse"
