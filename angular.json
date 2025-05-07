@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "churn-ananlytics-dashboard": {
+    "churn-analytics-dashboard": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/churn-ananlytics-dashboard",
+            "outputPath": "dist/churn-analytics-dashboard",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -62,10 +62,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "churn-ananlytics-dashboard:build:production"
+              "buildTarget": "churn-analytics-dashboard:build:production"
             },
             "development": {
-              "buildTarget": "churn-ananlytics-dashboard:build:development",
+              "buildTarget": "churn-analytics-dashboard:build:development",
               "proxyConfig": "proxy.conf.json"
             }
           },
