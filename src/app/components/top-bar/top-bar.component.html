@@ -8,7 +8,7 @@
   <div class="flex items-center gap-6 relative">
     <!-- Chatbot Icon -->
     <div class="relative flex flex-col items-center">
-      <button
+    <!--   <button
         (click)="toggleChat()"
         class="relative transform hover:scale-110 transition-transform"
       >
@@ -17,10 +17,10 @@
           alt="Chatbot"
           class="w-8 h-8 dark:invert"
         />
-      </button>
+      </button> -->
 
       <!-- Vertical Line + Chatbot Popup -->
-      <div
+   <!--    <div
         *ngIf="isChatOpen"
         class="absolute top-12 flex flex-col items-center"
       >
@@ -64,12 +64,12 @@
             />
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Alert Icon -->
     <div class="relative flex flex-col items-center">
-      <button
+      <!-- <button
         (click)="toggleAlert()"
         class="relative transform hover:scale-110 transition-transform"
       >
@@ -78,10 +78,10 @@
           alt="Alerts"
           class="w-6 h-6 dark:invert"
         />
-      </button>
+      </button> -->
 
       <!-- Vertical Line + Alerts Popup -->
-      <div
+      <!-- <div
         *ngIf="isAlertOpen"
         class="absolute top-12 flex flex-col items-center"
       >
@@ -103,17 +103,17 @@
             <div>🚨 % Scrap by Machine</div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Messages Icon -->
-    <button class="relative transform hover:scale-110 transition-transform">
+    <!-- <button class="relative transform hover:scale-110 transition-transform">
       <img
         src="assets/icons/message-icon.png"
         alt="Messages"
         class="w-6 h-6 dark:invert"
       />
-    </button>
+    </button> -->
 
     <!-- Dark Mode Toggle -->
     <button
@@ -154,11 +154,11 @@
         </ng-container>
         <ng-template #userLoaded>{{ currentUser }}</ng-template>
       </span>
-      <img
+      <!-- <img
         src="assets/images/user-avatar.png"
         alt="User Avatar"
         class="w-8 h-8 rounded-full dark:invert"
-      />
+      /> -->
     </div>
   </div>
 </div>

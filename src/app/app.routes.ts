@@ -6,7 +6,7 @@ import { WritebackTableComponent } from './pages/writeback-table/writeback-table
 import { WritebackTableStaticDataComponent } from './pages/writeback-table-static-data/writeback-table-static-data.component';
 
 export const routes: Routes = [
-    { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+    { path: '', redirectTo: '/writeback', pathMatch: 'full' },
     { path: 'dashboard', component: DashboardComponent },
     { path: 'insights', component: InsightsComponent },
     { path: 'predictive-analytics', component: PredictiveAnalyticsComponent },
