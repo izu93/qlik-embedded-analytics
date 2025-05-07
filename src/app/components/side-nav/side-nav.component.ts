@@ -13,7 +13,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router'; // <-- Import th
   styleUrls: ['./side-nav.component.css']
 })
 export class SideNavComponent {
-  isCollapsed = false;
+  isCollapsed = true;
 
   toggleCollapse() {
     this.isCollapsed = !this.isCollapsed;
