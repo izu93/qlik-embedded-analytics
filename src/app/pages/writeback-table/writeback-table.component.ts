@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
@@ -10,8 +10,12 @@ import { environment } from '../../../environments/environment';
   imports: [CommonModule, FormsModule],
   templateUrl: './writeback-table.component.html',
   styleUrls: ['./writeback-table.component.css'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class WritebackTableComponent {
+  
+  filterPanelId = 'JbeMYy';
+
   loading = false;
   // Search term for filtering rows
   searchTerm = '';

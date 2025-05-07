@@ -45,7 +45,7 @@ th span {
   color: #6b7280;
 }
 .unsaved-badge {
-  color: #870f6c; 
+  color: #870f6c;
   font-size: 1.5em;
   vertical-align: middle;
   margin-left: 4px;
@@ -62,4 +62,9 @@ th span {
   100% {
     opacity: 1;
   }
+}
+
+.filter-panel {
+  width: 1500px;
+  height: 70px;
 }
