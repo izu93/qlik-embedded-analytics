@@ -1,13 +1,12 @@
-<div class="p-6 bg-gray-100 dark:bg-gray-800 min-h-screen">
+<div class="p-6 bg dark:bg-gray-800 min-h-screen">
   <!-- Title Header -->
   <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
     Writeback Table — Churn Insights
   </h2>
-  <h4 class="font-semibold mb-6 text-gray-800 dark:text-white">
-    Filter by
-  </h4>
   <!-- Filter Panel -->
-  <div class="filter-panel">
+  <qlik-embed ui="analytics/selections" [attr.app-id]="appId"></qlik-embed>
+
+  <div class="filter-panel font-semibold mb-6 text-gray-800 dark:text-white">
     <qlik-embed
       ui="analytics/chart"
       [attr.app-id]="appId"
