@@ -403,51 +403,42 @@ export class WritebackTableComponent {
       ? this.getChangedRows()
       : this.writebackData;
 
-    const exportFields = [
-      'Account ID',
-      'Predicted to Churn?',
-      'Probability of Churn',
-      'Base Fee',
-      'HasRenewed',
-      'PlanType',
-      'Status',
-      'UpdatedAt',
-      'UpdatedBy',
-      'Comments',
-    ];
+    if (rowsToExport.length === 0) return;
 
-    const exportLabels = [
-      'Account ID',
-      'Predicted to Churn?',
-      'Probability of Churn',
-      'Base Fee',
-      'Has Renewed',
-      'Plan Type',
-      'Status',
-      'Updated At',
-      'Updated By',
-      'Comments',
-    ];
+    const excludedFields = ['changed', '_syncing'];
+    const header = Object.keys(rowsToExport[0]).filter(
+      (key) => !excludedFields.includes(key)
+    );
 
-    const csvContent = [exportLabels.join(',')];
+    const csvRows = [header.join(',')];
 
-    rowsToExport.forEach((row: any) => {
-      const rowData = exportFields.map((field) => `"${row[field] ?? ''}"`);
-      csvContent.push(rowData.join(','));
+    rowsToExport.forEach((row) => {
+      const values = header.map(
+        (key) => `"${(row[key] ?? '').toString().replace(/"/g, '""')}"`
+      );
+      csvRows.push(values.join(','));
     });
 
-    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.setAttribute('hidden', '');
     a.href = url;
     a.download = 'churn_data.csv';
     a.click();
   }
+
   // Export all current rows to JSON format
-  exportToJSON() {
-    const json = JSON.stringify(this.writebackData, null, 2);
-    this.downloadFile(json, 'data.json', 'application/json');
+  exportToJSON(): void {
+    const rowsToExport = this.getChangedRows().length
+      ? this.getChangedRows()
+      : this.writebackData;
+
+    const cleanedRows = rowsToExport.map(
+      ({ changed, _syncing, ...rest }) => rest
+    );
+
+    const json = JSON.stringify(cleanedRows, null, 2);
+    this.downloadFile(json, 'churn_data.json', 'application/json');
   }
 
   // Trigger file download in browser

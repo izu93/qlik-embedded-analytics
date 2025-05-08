@@ -6,11 +6,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { AppComponent } from './app/app.component';
-import { routes } from './app/app.routes'; // or your defined routes
+import { routes } from './app/app.routes'; 
 
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(BrowserModule, FormsModule, BrowserAnimationsModule),
-    provideRouter(routes), // this line is critical
+    provideRouter(routes), 
   ],
 });
