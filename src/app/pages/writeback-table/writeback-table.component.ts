@@ -1,4 +1,8 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
@@ -10,10 +14,9 @@ import { environment } from '../../../environments/environment';
   imports: [CommonModule, FormsModule],
   templateUrl: './writeback-table.component.html',
   styleUrls: ['./writeback-table.component.css'],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class WritebackTableComponent {
-  
   filterPanelId = 'JbeMYy';
 
   loading = false;
@@ -47,6 +50,9 @@ export class WritebackTableComponent {
   statusWidth = 150;
   ARRWidth = 130;
 
+  private previousRowCount: number = -1;
+  private selectionPollInterval: any;
+
   // Column definitions used in the UI
   columnsToShow = [
     { label: 'URL', field: 'URL' },
@@ -75,7 +81,10 @@ export class WritebackTableComponent {
   data: any;
   col: any;
 
-  constructor(private qlikService: QlikAPIService) {}
+  constructor(
+    private qlikService: QlikAPIService,
+    private cdRef: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     if (typeof window === 'undefined') return;
@@ -83,28 +92,53 @@ export class WritebackTableComponent {
     this.qlikService.getCurrentUserName().then((name) => {
       this.userName = name;
       console.log('Logged in as:', name);
-    });
 
-    // Always load from Qlik first
-    this.loadPage(this.currentPage).then(() => {
-      const cached = localStorage.getItem('writebackData');
-      if (cached) {
-        const savedRows = JSON.parse(cached);
+      // Initial table load
+      this.loadPage(this.currentPage).then(() => {
+        this.mergeCachedWritebackEdits();
+        this.previousRowCount = this.writebackData.length; // Set baseline row count
+      });
 
-        // Merge local storage edits into Qlik-fetched data
-        this.writebackData = this.writebackData.map((row) => {
-          const match = savedRows.find(
-            (saved: any) => saved['Account'] === row['Account']
+      // Poll for selection changes every 2 seconds
+      this.selectionPollInterval = setInterval(async () => {
+        const result = await this.qlikService.fetchPage(
+          this.appId,
+          this.objectId,
+          1, // check just 1 row
+          1
+        );
+        const newCount = result.totalRows;
+
+        if (newCount !== this.previousRowCount) {
+          console.log(
+            `Selection change detected: ${this.previousRowCount} → ${newCount}`
           );
-          return match ? { ...row, ...match, changed: false } : row;
-        });
+          this.previousRowCount = newCount;
 
-        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
-
-        console.log('Local storage edits merged into Qlik data');
-      }
+          this.loadPage(this.currentPage).then(() => {
+            this.mergeCachedWritebackEdits();
+            this.cdRef.detectChanges(); // Ensure Angular reflects the new data
+          });
+        }
+      }, 2000);
     });
   }
+
+  private mergeCachedWritebackEdits() {
+    const cached = localStorage.getItem('writebackData');
+    if (cached) {
+      const savedRows = JSON.parse(cached);
+      this.writebackData = this.writebackData.map((row) => {
+        const match = savedRows.find(
+          (saved: any) => saved['Account'] === row['Account']
+        );
+        return match ? { ...row, ...match, changed: false } : row;
+      });
+      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      console.log('Local storage edits merged into Qlik data');
+    }
+  }
+  // Load initial data
 
   async loadPage(page: number): Promise<void> {
     this.loading = true;
@@ -372,5 +406,9 @@ export class WritebackTableComponent {
       localStorage.removeItem('writebackData');
       location.reload();
     }
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.selectionPollInterval);
   }
 }

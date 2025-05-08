@@ -4,6 +4,7 @@ import { auth } from '@qlik/api';
 import { openAppSession } from '@qlik/api/qix';
 import { HostConfig } from '@qlik/api/auth';
 import { environment } from '../../environments/environment';
+import { BehaviorSubject } from 'rxjs';
 
 // Extend the Window interface to include the 'x' property
 declare global {
