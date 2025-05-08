@@ -4,6 +4,7 @@ import { auth } from '@qlik/api';
 import { openAppSession } from '@qlik/api/qix';
 import { HostConfig } from '@qlik/api/auth';
 import { environment } from '../../environments/environment';
+import { BehaviorSubject } from 'rxjs';
 
 // Extend the Window interface to include the 'x' property
 declare global {
@@ -30,6 +31,7 @@ export class QlikAPIService {
     accessTokenStorage: 'session', // Store access token in sessionStorage
   };
 
+  // Initializes Qlik Cloud OAuth2 session config on the client
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     // Detect platform: true if running in browser, false if on server (SSR)
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -44,6 +46,7 @@ export class QlikAPIService {
    * Retrieves the current OAuth2 access token from session storage.
    * Used for authenticated REST API calls.
    */
+  // Extracts the current OAuth token from sessionStorage (used in REST API calls)
   getAccessTokenFromSessionStorage(): string | null {
     const key = Object.keys(sessionStorage).find(
       (k) => k.includes('access-token') && sessionStorage.getItem(k)
@@ -59,6 +62,9 @@ export class QlikAPIService {
    * @param appId - The ID of the Qlik Sense app
    * @returns Array of rows with keys mapped to dimension/measure labels
    */
+
+  // Fetches structured dimension+measure rows from a Qlik object
+  // Used in detail table views or static snapshot apps
   async getObjectData(objectId: string, appId: string): Promise<any[]> {
     try {
       const appSession = openAppSession({ appId });
@@ -115,6 +121,7 @@ export class QlikAPIService {
    * Retrieves the authenticated Qlik Cloud user's name using the REST API.
    * Falls back to email or subject if name is not available.
    */
+  // Retrieves current Qlik Cloud username/email/subject via REST API
   async getCurrentUserName(): Promise<string> {
     if (!this.isBrowser) return 'Server';
 
@@ -150,7 +157,8 @@ export class QlikAPIService {
     return 'Unknown User';
   }
 
-  /*saveToBackend() in QlikAPIService*/
+  // Saves changed writeback rows to the backend API (/api/save)
+  // Used in Save button logic inside Angular writeback table
   saveToBackend(changedRows: any[]): Promise<any> {
     return fetch('/api/save', {
       method: 'POST',
@@ -166,17 +174,18 @@ export class QlikAPIService {
         return response.json();
       })
       .then((data) => {
-        console.log('✅ Backend Save Response:', data);
+        console.log('Backend Save Response:', data);
         return data;
       });
   }
 
-  /*Optional getFromBackend() if you want to load from /data*/
+  // Optional: Loads persisted rows from backend endpoint for server-side load
   async getFromBackend(): Promise<any[]> {
     const res = await fetch(`${environment.backendUrl}/api/data`);
     return await res.json();
   }
-
+  // Retrieves paginated data from a Qlik hypercube object for large datasets
+  // Used in writeback-table.component for smooth paginatio
   async fetchPage(
     appId: string,
     objectId: string,
@@ -211,7 +220,7 @@ export class QlikAPIService {
 
       const matrix = data[0]?.qMatrix || [];
 
-      // ❗ Strict field order: do not use qEffectiveInterColumnSortOrder
+      // Strict field order: do not use qEffectiveInterColumnSortOrder
       const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
         (d) => d.qFallbackTitle
       );
@@ -224,100 +233,11 @@ export class QlikAPIService {
         Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
       );
 
-      console.log(`Page ${page} →`, rows);
+      //console.log(`Page ${page} →`, rows);
       return { rows, totalRows };
     } catch (err) {
       console.error('fetchPage() failed:', err);
       return { rows: [], totalRows: 0 };
     }
   }
-
-  /**
-   * This method (commented out) is a full metadata fetcher:
-   * - Gets master dimensions, measures, visualizations, and all fields.
-   * It can be re-enabled for development tools like dynamic dropdowns or builders.
-   */
-  /*
-  async getAppData() {
-    if (!this.isBrowser) {
-      console.warn('getAppData() was called on the server. Skipping Qlik API call.');
-      return {
-        dimensions: [],
-        measures: [],
-        visualizations: [],
-        allFields: [],
-      };
-    }
-
-    try {
-      const appSession = openAppSession({ appId: environment.qlik.appId });
-      const app = await appSession.getDoc();
-      const allObjects = await app.getAllInfos();
-
-      const masterDimensions: any[] = [];
-      const masterMeasures: any[] = [];
-      const masterVisualizations: any[] = [];
-
-      for (const obj of allObjects) {
-        const { qId, qType } = obj;
-
-        if (qType === 'dimension') {
-          const dimension = await app.getDimension(qId);
-          const layout = await dimension.getLayout();
-          const label = layout.qMeta?.title || qId;
-          masterDimensions.push({ id: qId, label, type: 'dimension' });
-        } else if (qType === 'measure') {
-          const measure = await app.getMeasure(qId);
-          const layout = await measure.getLayout();
-          const label = layout.qMeta?.title || qId;
-          masterMeasures.push({ id: qId, label, type: 'measure' });
-        } else if (qType === 'masterobject') {
-          const objectHandle = await app.getObject(qId);
-          const layout = await objectHandle.getLayout();
-          const label = layout.qMeta?.title || qId;
-          const visualizationType = layout.visualization || 'unknown';
-          masterVisualizations.push({ id: qId, label, visualizationType });
-        }
-      }
-
-      const fieldListObj = await app.createSessionObject({
-        qInfo: { qType: 'FieldList' },
-        qFieldListDef: {
-          qShowSystem: false,
-          qShowHidden: false,
-          qShowDerivedFields: true,
-          qShowSemantic: true,
-          qShowSrcTables: true,
-        }
-      });
-
-      const fieldLayout = await fieldListObj.getLayout();
-      const allFields = fieldLayout.qFieldList?.qItems?.map(field => ({
-        name: field.qName,
-        cardinal: field.qCardinal,
-        tags: field.qTags,
-      })) ?? [];
-
-      console.log('Master Dimensions:', masterDimensions);
-      console.log('Master Measures:', masterMeasures);
-      console.log('Master Visualizations:', masterVisualizations);
-      console.log('All Fields:', allFields);
-
-      return {
-        dimensions: masterDimensions,
-        measures: masterMeasures,
-        visualizations: masterVisualizations,
-        allFields,
-      };
-    } catch (err) {
-      console.error('Error fetching Qlik app data:', err);
-      return {
-        dimensions: [],
-        measures: [],
-        visualizations: [],
-        allFields: [],
-      };
-    }
-  }
-  */
 }

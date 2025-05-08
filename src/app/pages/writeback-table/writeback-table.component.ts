@@ -1,4 +1,8 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
@@ -10,10 +14,9 @@ import { environment } from '../../../environments/environment';
   imports: [CommonModule, FormsModule],
   templateUrl: './writeback-table.component.html',
   styleUrls: ['./writeback-table.component.css'],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class WritebackTableComponent {
-  
   filterPanelId = 'JbeMYy';
 
   loading = false;
@@ -47,6 +50,10 @@ export class WritebackTableComponent {
   statusWidth = 150;
   ARRWidth = 130;
 
+  private previousRowCount: number = -1;
+  private selectionPollInterval: any;
+  showOverlay = true;
+
   // Column definitions used in the UI
   columnsToShow = [
     { label: 'URL', field: 'URL' },
@@ -74,41 +81,87 @@ export class WritebackTableComponent {
   readonly objectId = environment.qlik.objectId;
   data: any;
   col: any;
+  private previousRowHash: string = '';
+  tableVisible = false;
 
-  constructor(private qlikService: QlikAPIService) {}
-
+  constructor(
+    private qlikService: QlikAPIService,
+    private cdRef: ChangeDetectorRef
+  ) {}
+  // Initializes the table component, user info, and Qlik polling
   ngOnInit(): void {
     if (typeof window === 'undefined') return;
 
     this.qlikService.getCurrentUserName().then((name) => {
       this.userName = name;
       console.log('Logged in as:', name);
-    });
 
-    // Always load from Qlik first
-    this.loadPage(this.currentPage).then(() => {
-      const cached = localStorage.getItem('writebackData');
-      if (cached) {
-        const savedRows = JSON.parse(cached);
+      // Initial table load
+      this.loadPage(this.currentPage).then(() => {
+        this.mergeCachedWritebackEdits();
+        this.previousRowHash = this.hashRows(this.writebackData);
+      });
 
-        // Merge local storage edits into Qlik-fetched data
-        this.writebackData = this.writebackData.map((row) => {
-          const match = savedRows.find(
-            (saved: any) => saved['Account'] === row['Account']
-          );
-          return match ? { ...row, ...match, changed: false } : row;
-        });
+      this.selectionPollInterval = setInterval(async () => {
+        const result = await this.qlikService.fetchPage(
+          this.appId,
+          this.objectId,
+          1,
+          3 // top 3 rows only
+        );
+        const previewRows = result.rows;
+        const newHash = this.hashRows(previewRows);
 
-        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+        if (newHash !== this.previousRowHash) {
+          console.log('Qlik selection change detected — refreshing table...');
+          this.previousRowHash = newHash;
 
-        console.log('Local storage edits merged into Qlik data');
-      }
+          await this.loadPage(this.currentPage);
+          this.mergeCachedWritebackEdits();
+          //this.cdRef.detectChanges();
+        }
+      }, 2000);
     });
   }
-
+  // Generates a stable hash from top N Qlik rows for detecting selection changes
+  private hashRows(rows: any[]): string {
+    const preview = rows.slice(0, 3).map((r) => ({
+      Account: r['Account'],
+      ARR: r['ARR'],
+      Risk: r['Overall Renewal Risk'],
+    }));
+    const raw = JSON.stringify(preview);
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      const char = raw.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return hash.toString();
+  }
+  //Merges saved writeback edits from localStorage into freshly loaded Qlik data
+  private mergeCachedWritebackEdits() {
+    const cached = localStorage.getItem('writebackData');
+    if (cached) {
+      const savedRows = JSON.parse(cached);
+      this.writebackData = this.writebackData.map((row) => {
+        const match = savedRows.find(
+          (saved: any) => saved['Account'] === row['Account']
+        );
+        return match ? { ...row, ...match, changed: false } : row;
+      });
+      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      console.log('Local storage edits merged into Qlik data');
+    }
+  }
+  //Loads paginated Qlik data with a visual smooth reveal (no flicker)
   async loadPage(page: number): Promise<void> {
     this.loading = true;
+    this.tableVisible = false;
+    this.showOverlay = this.currentPage === 1 && !this.writebackData.length;
+
     this.currentPage = page;
+    this.writebackData = [];
 
     try {
       const result = await this.qlikService.fetchPage(
@@ -117,20 +170,27 @@ export class WritebackTableComponent {
         page,
         this.pageSize
       );
-
       const freshRows = result.rows;
       this.totalRows = result.totalRows;
-      console.log(`Loaded ${freshRows.length} rows from Qlik (page ${page})`);
 
-      // Clear current writebackData to avoid appending duplicates
-      this.writebackData = [
-        ...freshRows.map((r) => ({ ...r, changed: false })),
-      ];
-      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      const newHash = this.hashRows(freshRows);
+      if (newHash !== this.hashRows(this.writebackData)) {
+        this.writebackData = freshRows.map((r) => ({ ...r, changed: false }));
+        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      }
+
+      this.mergeCachedWritebackEdits();
+      //Smoother frame-accurate reveal
+      requestAnimationFrame(() => {
+        this.tableVisible = true;
+      });
     } catch (error) {
       console.error('Error loading Qlik data:', error);
     } finally {
       this.loading = false;
+      setTimeout(() => {
+        this.showOverlay = false;
+      }, 300);
     }
   }
 
@@ -138,12 +198,14 @@ export class WritebackTableComponent {
   get pagedRows() {
     return this.writebackData;
   }
-  // Marks a row and optionally a field as changed
+  //Detects and tracks row changes, timestamps, and user attribution
   markChanged(row: any, field?: string) {
+    //Flag the row as changed so it’s tracked for saving
     row.changed = true;
+    // Track which field was edited (useful for analytics or UI)
     if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
 
-    // Add timestamp and user
+    // Stamp the row with a human-readable timestamp and current user
     row.UpdatedAt = new Date().toLocaleString('en-US', {
       month: 'numeric',
       day: '2-digit',
@@ -154,6 +216,15 @@ export class WritebackTableComponent {
       hour12: true,
     });
     row.UpdatedBy = this.userName;
+
+    // Immediately update localStorage so edits persist across pages and reloads
+    const existing = JSON.parse(localStorage.getItem('writebackData') || '[]');
+    // Remove any existing entry for this Account (by unique key)
+    const updated = existing.filter((r: any) => r.Account !== row.Account);
+    // Add the latest edited row
+    updated.push(row); // Overwrite or insert
+    // Save the updated writeback data back to localStorage
+    localStorage.setItem('writebackData', JSON.stringify(updated));
   }
 
   // Returns the value of a given column in a row
@@ -189,7 +260,7 @@ export class WritebackTableComponent {
     }
   }
 
-  // Returns sorted rows based on current sort settings
+  //Returns filtered and sorted table data for rendering
   get sortedRows() {
     const sorted = [...this.filteredRows];
     if (this.sortColumn) {
@@ -224,8 +295,7 @@ export class WritebackTableComponent {
     return this.writebackData.filter((row) => row.changed);
   }
 
-  // Simulate saving changes and reset changed flags
-  //Call saveToBackend() inside saveChanges()
+  // Persists edited rows to backend and syncs localStorage edits
   saveChanges() {
     this.isSaving = true;
     const changedRows = this.getChangedRows();
@@ -295,9 +365,7 @@ export class WritebackTableComponent {
     return parseFloat(value?.toString().replace('%', '').trim() || '0');
   }
 
-  // Removed duplicate saveChanges() implementation
-
-  // Export all current rows to CSV format
+  // Exports current table to CSV or JSON with clean field labels
   exportToCSV(): void {
     const rowsToExport = this.getChangedRows().length
       ? this.getChangedRows()
@@ -372,5 +440,9 @@ export class WritebackTableComponent {
       localStorage.removeItem('writebackData');
       location.reload();
     }
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.selectionPollInterval);
   }
 }
