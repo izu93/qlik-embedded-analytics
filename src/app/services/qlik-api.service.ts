@@ -31,6 +31,7 @@ export class QlikAPIService {
     accessTokenStorage: 'session', // Store access token in sessionStorage
   };
 
+  // Initializes Qlik Cloud OAuth2 session config on the client
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     // Detect platform: true if running in browser, false if on server (SSR)
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -45,6 +46,7 @@ export class QlikAPIService {
    * Retrieves the current OAuth2 access token from session storage.
    * Used for authenticated REST API calls.
    */
+  // Extracts the current OAuth token from sessionStorage (used in REST API calls)
   getAccessTokenFromSessionStorage(): string | null {
     const key = Object.keys(sessionStorage).find(
       (k) => k.includes('access-token') && sessionStorage.getItem(k)
@@ -60,6 +62,9 @@ export class QlikAPIService {
    * @param appId - The ID of the Qlik Sense app
    * @returns Array of rows with keys mapped to dimension/measure labels
    */
+
+  // Fetches structured dimension+measure rows from a Qlik object
+  // Used in detail table views or static snapshot apps
   async getObjectData(objectId: string, appId: string): Promise<any[]> {
     try {
       const appSession = openAppSession({ appId });
@@ -116,6 +121,7 @@ export class QlikAPIService {
    * Retrieves the authenticated Qlik Cloud user's name using the REST API.
    * Falls back to email or subject if name is not available.
    */
+  // Retrieves current Qlik Cloud username/email/subject via REST API
   async getCurrentUserName(): Promise<string> {
     if (!this.isBrowser) return 'Server';
 
@@ -151,7 +157,8 @@ export class QlikAPIService {
     return 'Unknown User';
   }
 
-  /*saveToBackend() in QlikAPIService*/
+  // Saves changed writeback rows to the backend API (/api/save)
+  // Used in Save button logic inside Angular writeback table
   saveToBackend(changedRows: any[]): Promise<any> {
     return fetch('/api/save', {
       method: 'POST',
@@ -172,12 +179,13 @@ export class QlikAPIService {
       });
   }
 
-  /*Optional getFromBackend() if you want to load from /data*/
+  // Optional: Loads persisted rows from backend endpoint for server-side load
   async getFromBackend(): Promise<any[]> {
     const res = await fetch(`${environment.backendUrl}/api/data`);
     return await res.json();
   }
-
+  // Retrieves paginated data from a Qlik hypercube object for large datasets
+  // Used in writeback-table.component for smooth paginatio
   async fetchPage(
     appId: string,
     objectId: string,
@@ -212,7 +220,7 @@ export class QlikAPIService {
 
       const matrix = data[0]?.qMatrix || [];
 
-      // ❗ Strict field order: do not use qEffectiveInterColumnSortOrder
+      // Strict field order: do not use qEffectiveInterColumnSortOrder
       const dimensionFields = (hyperCube.qDimensionInfo ?? []).map(
         (d) => d.qFallbackTitle
       );
