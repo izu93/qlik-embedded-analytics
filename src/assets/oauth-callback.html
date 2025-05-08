@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
  <html lang="en">
    <head>
      <meta charset="utf-8" />
@@ -9,4 +9,25 @@
        src="https://cdn.jsdelivr.net/npm/@qlik/embed-web-components/dist/oauth-callback.js"
      ></script>
    </head>
- </html>
+ </html> -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Qlik OAuth Callback</title>
+    <script>
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const token = params.get("access_token");
+
+      if (token) {
+        sessionStorage.setItem("qlik_access_token", token);
+      }
+
+      window.location.href = "/";
+    </script>
+  </head>
+  <body>
+    Redirecting...
+  </body>
+</html>
