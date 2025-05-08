@@ -179,6 +179,7 @@ export class WritebackTableComponent {
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       }
 
+      this.mergeCachedWritebackEdits();
       //Smoother frame-accurate reveal
       requestAnimationFrame(() => {
         this.tableVisible = true;
@@ -199,10 +200,12 @@ export class WritebackTableComponent {
   }
   //Detects and tracks row changes, timestamps, and user attribution
   markChanged(row: any, field?: string) {
+    //Flag the row as changed so it’s tracked for saving
     row.changed = true;
+    // Track which field was edited (useful for analytics or UI)
     if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
 
-    // Add timestamp and user
+    // Stamp the row with a human-readable timestamp and current user
     row.UpdatedAt = new Date().toLocaleString('en-US', {
       month: 'numeric',
       day: '2-digit',
@@ -213,6 +216,15 @@ export class WritebackTableComponent {
       hour12: true,
     });
     row.UpdatedBy = this.userName;
+
+    // Immediately update localStorage so edits persist across pages and reloads
+    const existing = JSON.parse(localStorage.getItem('writebackData') || '[]');
+    // Remove any existing entry for this Account (by unique key)
+    const updated = existing.filter((r: any) => r.Account !== row.Account);
+    // Add the latest edited row
+    updated.push(row); // Overwrite or insert
+    // Save the updated writeback data back to localStorage
+    localStorage.setItem('writebackData', JSON.stringify(updated));
   }
 
   // Returns the value of a given column in a row
