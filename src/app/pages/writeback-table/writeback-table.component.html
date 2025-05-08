@@ -26,8 +26,7 @@
       <li>Changes are preserved across pages, filters, and reloads.</li>
       <li>Click <strong>Save All Changes</strong> to sync to backend.</li>
       <li>
-        Saved rows will show a green checkmark. “Syncing…” appears while
-        saving.
+        Saved rows will show a green checkmark. “Syncing…” appears while saving.
       </li>
       <li>Use <strong>Reset</strong> to discard edits for a row.</li>
       <li>
@@ -256,9 +255,16 @@
                       <select
                         [style.backgroundColor]="
                           row.Status === 'Approve'
-                            ? '#7bdb9e'
+                            ? '#2e7d32'
                             : row.Status === 'Reject'
-                            ? '#ea7676'
+                            ? '#d32f2f'
+                            : ''
+                        "
+                        [style.Color]="
+                          row.Status === 'Approve'
+                            ? '#ffffff'
+                            : row.Status === 'Reject'
+                            ? '#ffffff'
                             : ''
                         "
                         [style.width.px]="statusWidth"
