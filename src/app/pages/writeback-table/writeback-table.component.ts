@@ -301,6 +301,19 @@ export class WritebackTableComponent {
     const changedRows = this.getChangedRows();
     console.log('Saving to backend:', changedRows);
 
+    // Validate edited rows before sending to backend
+    const invalidRows = changedRows.filter((row) => {
+      return !row.Status || (row.Comments && row.Comments.length > 300);
+    });
+
+    if (invalidRows.length > 0) {
+      alert(
+        'Please fix validation issues:\n- Status is required\n- Comments must be under 300 characters'
+      );
+      this.isSaving = false;
+      return;
+    }
+    // Backend save logic
     this.qlikService
       .saveToBackend(changedRows)
       .then(() => {
@@ -316,6 +329,7 @@ export class WritebackTableComponent {
         });
 
         // Merge with localStorage instead of replacing completely
+        //Sync localStorage with updated rows
         const existing = JSON.parse(
           localStorage.getItem('writebackData') || '[]'
         );
