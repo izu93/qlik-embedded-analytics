@@ -11,6 +11,6 @@ import { routes } from './app/app.routes'; // or your defined routes
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(BrowserModule, FormsModule, BrowserAnimationsModule),
-    provideRouter(routes), // 👈 this line is critical
+    provideRouter(routes), // this line is critical
   ],
 });
