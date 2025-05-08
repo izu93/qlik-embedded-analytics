@@ -10,5 +10,5 @@ import { SideNavComponent } from './components/side-nav/side-nav.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'churn-ananlytics-dashboard';
+  title = 'churn-analytics-dashboard';
 }
