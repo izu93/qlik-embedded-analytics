@@ -3,7 +3,7 @@
   <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
     Writeback Table — Churn Insights
   </h2>
-  <!-- Filter Panel -->
+  <!-- Qlik Selection Bar and Filter Panel Embed -->
   <qlik-embed ui="analytics/selections" [attr.app-id]="appId"></qlik-embed>
 
   <div class="filter-panel font-semibold mb-6 text-gray-800 dark:text-white">
@@ -24,6 +24,7 @@
   <div class="flex justify-between items-center mb-4">
     <!-- Search input with clear button -->
     <div class="relative w-72 focus-within:w-96 transition-all duration-300">
+      <!-- Responsive Search Input with Clear Button -->
       <input
         type="text"
         [(ngModel)]="searchTerm"
@@ -87,10 +88,23 @@
   <div *ngIf="loading" class="text-center text-sm py-4 text-gray-600">
     Loading...
   </div>
-
+  <div
+    *ngIf="showOverlay"
+    class="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50"
+  >
+    <span class="text-gray-700 font-medium">Loading insights...</span>
+  </div>
   <!-- Table container -->
-  <div class="flex-1 overflow-auto max-w-full rounded-lg shadow">
-    <table [class.loading]="loading" class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
+  <!-- Smooth Opacity Fade-In Table (ngClass used with tableVisible flag) -->
+  <div
+    [ngClass]="{
+      'blur-when-loading': loading,
+      'opacity-100 transition-opacity duration-300': tableVisible,
+      'opacity-0 pointer-events-none': !tableVisible
+    }"
+    class="relative flex-1 overflow-auto max-w-full rounded-lg shadow"
+  >
+    <table class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
       <!-- Table header -->
       <thead
         class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase"

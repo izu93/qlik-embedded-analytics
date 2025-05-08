@@ -69,10 +69,15 @@ th span {
   height: 70px;
 }
 table tbody tr {
-    transition: opacity 0.2s ease;
-    opacity: 1;
-  }
-  
-  table.loading tbody tr {
-    opacity: 0.3;
-  }
+  transition: opacity 0.2s ease;
+  opacity: 1;
+}
+
+table.loading tbody tr {
+  opacity: 0.3;
+}
+.blur-when-loading {
+  filter: blur(1.5px);
+  opacity: 0.5;
+  pointer-events: none;
+}

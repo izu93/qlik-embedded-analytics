@@ -167,7 +167,7 @@ export class QlikAPIService {
         return response.json();
       })
       .then((data) => {
-        console.log('✅ Backend Save Response:', data);
+        console.log('Backend Save Response:', data);
         return data;
       });
   }
@@ -232,93 +232,4 @@ export class QlikAPIService {
       return { rows: [], totalRows: 0 };
     }
   }
-
-  /**
-   * This method (commented out) is a full metadata fetcher:
-   * - Gets master dimensions, measures, visualizations, and all fields.
-   * It can be re-enabled for development tools like dynamic dropdowns or builders.
-   */
-  /*
-  async getAppData() {
-    if (!this.isBrowser) {
-      console.warn('getAppData() was called on the server. Skipping Qlik API call.');
-      return {
-        dimensions: [],
-        measures: [],
-        visualizations: [],
-        allFields: [],
-      };
-    }
-
-    try {
-      const appSession = openAppSession({ appId: environment.qlik.appId });
-      const app = await appSession.getDoc();
-      const allObjects = await app.getAllInfos();
-
-      const masterDimensions: any[] = [];
-      const masterMeasures: any[] = [];
-      const masterVisualizations: any[] = [];
-
-      for (const obj of allObjects) {
-        const { qId, qType } = obj;
-
-        if (qType === 'dimension') {
-          const dimension = await app.getDimension(qId);
-          const layout = await dimension.getLayout();
-          const label = layout.qMeta?.title || qId;
-          masterDimensions.push({ id: qId, label, type: 'dimension' });
-        } else if (qType === 'measure') {
-          const measure = await app.getMeasure(qId);
-          const layout = await measure.getLayout();
-          const label = layout.qMeta?.title || qId;
-          masterMeasures.push({ id: qId, label, type: 'measure' });
-        } else if (qType === 'masterobject') {
-          const objectHandle = await app.getObject(qId);
-          const layout = await objectHandle.getLayout();
-          const label = layout.qMeta?.title || qId;
-          const visualizationType = layout.visualization || 'unknown';
-          masterVisualizations.push({ id: qId, label, visualizationType });
-        }
-      }
-
-      const fieldListObj = await app.createSessionObject({
-        qInfo: { qType: 'FieldList' },
-        qFieldListDef: {
-          qShowSystem: false,
-          qShowHidden: false,
-          qShowDerivedFields: true,
-          qShowSemantic: true,
-          qShowSrcTables: true,
-        }
-      });
-
-      const fieldLayout = await fieldListObj.getLayout();
-      const allFields = fieldLayout.qFieldList?.qItems?.map(field => ({
-        name: field.qName,
-        cardinal: field.qCardinal,
-        tags: field.qTags,
-      })) ?? [];
-
-      console.log('Master Dimensions:', masterDimensions);
-      console.log('Master Measures:', masterMeasures);
-      console.log('Master Visualizations:', masterVisualizations);
-      console.log('All Fields:', allFields);
-
-      return {
-        dimensions: masterDimensions,
-        measures: masterMeasures,
-        visualizations: masterVisualizations,
-        allFields,
-      };
-    } catch (err) {
-      console.error('Error fetching Qlik app data:', err);
-      return {
-        dimensions: [],
-        measures: [],
-        visualizations: [],
-        allFields: [],
-      };
-    }
-  }
-  */
 }

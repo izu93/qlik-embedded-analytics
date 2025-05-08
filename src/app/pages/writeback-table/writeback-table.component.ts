@@ -52,6 +52,7 @@ export class WritebackTableComponent {
 
   private previousRowCount: number = -1;
   private selectionPollInterval: any;
+  showOverlay = true;
 
   // Column definitions used in the UI
   columnsToShow = [
@@ -81,11 +82,13 @@ export class WritebackTableComponent {
   data: any;
   col: any;
   private previousRowHash: string = '';
+  tableVisible = false;
+
   constructor(
     private qlikService: QlikAPIService,
     private cdRef: ChangeDetectorRef
   ) {}
-
+  // Initializes the table component, user info, and Qlik polling
   ngOnInit(): void {
     if (typeof window === 'undefined') return;
 
@@ -120,6 +123,7 @@ export class WritebackTableComponent {
       }, 2000);
     });
   }
+  // Generates a stable hash from top N Qlik rows for detecting selection changes
   private hashRows(rows: any[]): string {
     const preview = rows.slice(0, 3).map((r) => ({
       Account: r['Account'],
@@ -135,7 +139,7 @@ export class WritebackTableComponent {
     }
     return hash.toString();
   }
-
+  //Merges saved writeback edits from localStorage into freshly loaded Qlik data
   private mergeCachedWritebackEdits() {
     const cached = localStorage.getItem('writebackData');
     if (cached) {
@@ -150,11 +154,14 @@ export class WritebackTableComponent {
       console.log('Local storage edits merged into Qlik data');
     }
   }
-  // Load initial data
-
+  //Loads paginated Qlik data with a visual smooth reveal (no flicker)
   async loadPage(page: number): Promise<void> {
     this.loading = true;
+    this.tableVisible = false;
+    this.showOverlay = this.currentPage === 1 && !this.writebackData.length;
+
     this.currentPage = page;
+    this.writebackData = [];
 
     try {
       const result = await this.qlikService.fetchPage(
@@ -163,20 +170,26 @@ export class WritebackTableComponent {
         page,
         this.pageSize
       );
-
       const freshRows = result.rows;
       this.totalRows = result.totalRows;
 
-      // Only update writebackData if different
       const newHash = this.hashRows(freshRows);
       if (newHash !== this.hashRows(this.writebackData)) {
         this.writebackData = freshRows.map((r) => ({ ...r, changed: false }));
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       }
+
+      //Smoother frame-accurate reveal
+      requestAnimationFrame(() => {
+        this.tableVisible = true;
+      });
     } catch (error) {
       console.error('Error loading Qlik data:', error);
     } finally {
       this.loading = false;
+      setTimeout(() => {
+        this.showOverlay = false;
+      }, 300);
     }
   }
 
@@ -184,7 +197,7 @@ export class WritebackTableComponent {
   get pagedRows() {
     return this.writebackData;
   }
-  // Marks a row and optionally a field as changed
+  //Detects and tracks row changes, timestamps, and user attribution
   markChanged(row: any, field?: string) {
     row.changed = true;
     if (field) this.touchedFields.add(`${row.AccountID}_${field}`);
@@ -235,7 +248,7 @@ export class WritebackTableComponent {
     }
   }
 
-  // Returns sorted rows based on current sort settings
+  //Returns filtered and sorted table data for rendering
   get sortedRows() {
     const sorted = [...this.filteredRows];
     if (this.sortColumn) {
@@ -270,8 +283,7 @@ export class WritebackTableComponent {
     return this.writebackData.filter((row) => row.changed);
   }
 
-  // Simulate saving changes and reset changed flags
-  //Call saveToBackend() inside saveChanges()
+  // Persists edited rows to backend and syncs localStorage edits
   saveChanges() {
     this.isSaving = true;
     const changedRows = this.getChangedRows();
@@ -341,9 +353,7 @@ export class WritebackTableComponent {
     return parseFloat(value?.toString().replace('%', '').trim() || '0');
   }
 
-  // Removed duplicate saveChanges() implementation
-
-  // Export all current rows to CSV format
+  // Exports current table to CSV or JSON with clean field labels
   exportToCSV(): void {
     const rowsToExport = this.getChangedRows().length
       ? this.getChangedRows()
