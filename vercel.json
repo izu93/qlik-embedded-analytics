@@ -1,3 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/assets/oauth-callback.html",
+      "destination": "/assets/oauth-callback.html"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
