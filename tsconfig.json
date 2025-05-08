@@ -16,7 +16,8 @@
     "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ES2022"
+    "module": "ES2022",
+    "baseUrl": "src" // This is required for absolute imports to work
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

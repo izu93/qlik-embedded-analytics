@@ -6,8 +6,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router'; // <-- Import th
   selector: 'app-side-nav',
   standalone: true,
   imports: [CommonModule,
-    RouterLink,        // <-- ADD THIS
-    RouterLinkActive   // <-- ADD THIS
+    RouterLink,        
+    RouterLinkActive   
   ],
   templateUrl: './side-nav.component.html',
   styleUrls: ['./side-nav.component.css']
