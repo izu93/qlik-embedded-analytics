@@ -225,7 +225,7 @@ export class QlikAPIService {
         Object.fromEntries(row.map((cell, i) => [fields[i], cell.qText]))
       );
 
-      console.log(`Page ${page} →`, rows);
+      //console.log(`Page ${page} →`, rows);
       return { rows, totalRows };
     } catch (err) {
       console.error('fetchPage() failed:', err);

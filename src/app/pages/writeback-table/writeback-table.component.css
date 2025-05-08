@@ -68,3 +68,11 @@ th span {
   width: 1500px;
   height: 70px;
 }
+table tbody tr {
+    transition: opacity 0.2s ease;
+    opacity: 1;
+  }
+  
+  table.loading tbody tr {
+    opacity: 0.3;
+  }

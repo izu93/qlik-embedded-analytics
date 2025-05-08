@@ -80,7 +80,7 @@ export class WritebackTableComponent {
   readonly objectId = environment.qlik.objectId;
   data: any;
   col: any;
-
+  private previousRowHash: string = '';
   constructor(
     private qlikService: QlikAPIService,
     private cdRef: ChangeDetectorRef
@@ -96,32 +96,44 @@ export class WritebackTableComponent {
       // Initial table load
       this.loadPage(this.currentPage).then(() => {
         this.mergeCachedWritebackEdits();
-        this.previousRowCount = this.writebackData.length; // Set baseline row count
+        this.previousRowHash = this.hashRows(this.writebackData);
       });
 
-      // Poll for selection changes every 2 seconds
       this.selectionPollInterval = setInterval(async () => {
         const result = await this.qlikService.fetchPage(
           this.appId,
           this.objectId,
-          1, // check just 1 row
-          1
+          1,
+          3 // top 3 rows only
         );
-        const newCount = result.totalRows;
+        const previewRows = result.rows;
+        const newHash = this.hashRows(previewRows);
 
-        if (newCount !== this.previousRowCount) {
-          console.log(
-            `Selection change detected: ${this.previousRowCount} → ${newCount}`
-          );
-          this.previousRowCount = newCount;
+        if (newHash !== this.previousRowHash) {
+          console.log('Qlik selection change detected — refreshing table...');
+          this.previousRowHash = newHash;
 
-          this.loadPage(this.currentPage).then(() => {
-            this.mergeCachedWritebackEdits();
-            this.cdRef.detectChanges(); // Ensure Angular reflects the new data
-          });
+          await this.loadPage(this.currentPage);
+          this.mergeCachedWritebackEdits();
+          //this.cdRef.detectChanges();
         }
       }, 2000);
     });
+  }
+  private hashRows(rows: any[]): string {
+    const preview = rows.slice(0, 3).map((r) => ({
+      Account: r['Account'],
+      ARR: r['ARR'],
+      Risk: r['Overall Renewal Risk'],
+    }));
+    const raw = JSON.stringify(preview);
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      const char = raw.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return hash.toString();
   }
 
   private mergeCachedWritebackEdits() {
@@ -154,13 +166,13 @@ export class WritebackTableComponent {
 
       const freshRows = result.rows;
       this.totalRows = result.totalRows;
-      console.log(`Loaded ${freshRows.length} rows from Qlik (page ${page})`);
 
-      // Clear current writebackData to avoid appending duplicates
-      this.writebackData = [
-        ...freshRows.map((r) => ({ ...r, changed: false })),
-      ];
-      this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      // Only update writebackData if different
+      const newHash = this.hashRows(freshRows);
+      if (newHash !== this.hashRows(this.writebackData)) {
+        this.writebackData = freshRows.map((r) => ({ ...r, changed: false }));
+        this.originalData = JSON.parse(JSON.stringify(this.writebackData));
+      }
     } catch (error) {
       console.error('Error loading Qlik data:', error);
     } finally {

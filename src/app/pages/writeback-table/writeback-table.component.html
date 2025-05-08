@@ -90,7 +90,7 @@
 
   <!-- Table container -->
   <div class="flex-1 overflow-auto max-w-full rounded-lg shadow">
-    <table class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
+    <table [class.loading]="loading" class="w-full min-w-[1024px] table-auto bg-white dark:bg-gray-900">
       <!-- Table header -->
       <thead
         class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm uppercase"
