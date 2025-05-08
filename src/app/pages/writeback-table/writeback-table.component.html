@@ -311,32 +311,53 @@
             </td>
           </ng-container>
 
-          <!-- Comments column with textarea for comments -->
-          <td class="px-4 py-2 border-r border-gray-200">
-            <input
-              type="text"
-              [(ngModel)]="row['Comments']"
-              (ngModelChange)="markChanged(row, 'Comments')"
-              class="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:text-white"
-              placeholder="Enter Comments"
-            />
+          <!-- Comments column with textarea and sync spinner -->
+          <td class="px-4 py-2 border-r border-gray-200 relative">
+            <div class="flex items-center gap-2 align-middle">
+              <input
+                type="text"
+                [(ngModel)]="row['Comments']"
+                (ngModelChange)="markChanged(row, 'Comments')"
+                class="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:text-white"
+                [class.opacity-70]="row._syncing"
+                placeholder="Enter Comments"
+                [disabled]="row._syncing"
+              />
+
+              <!-- Spinner placed right next to Comments input -->
+              <div
+                *ngIf="row._syncing"
+                class="animate-spin h-5 w-5 border-2 border-t-blue-600 border-gray-200 rounded-full"
+                title="Saving..."
+              ></div>
+            </div>
           </td>
 
           <!-- Reset button column -->
+          <!-- Reset button column -->
           <td class="px-4 py-2 border-r border-gray-200 text-center">
-            <ng-container
-              *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
-            >
-              <span class="text-green-600 font-bold text-sm">✔</span>
-            </ng-container>
-            <ng-template #resetBtn>
-              <button
-                (click)="resetRow(row)"
-                [disabled]="!row.changed"
-                class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
+            <ng-container *ngIf="row._syncing; else checkOrReset">
+              <!-- Show syncing indicator -->
+              <span class="text-blue-500 text-xs animate-pulse"
+                >Syncing...</span
               >
-                Reset
-              </button>
+            </ng-container>
+
+            <ng-template #checkOrReset>
+              <ng-container
+                *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
+              >
+                <span class="text-green-600 font-bold text-sm">✔</span>
+              </ng-container>
+              <ng-template #resetBtn>
+                <button
+                  (click)="resetRow(row)"
+                  [disabled]="!row.changed"
+                  class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
+                >
+                  Reset
+                </button>
+              </ng-template>
             </ng-template>
           </td>
         </tr>

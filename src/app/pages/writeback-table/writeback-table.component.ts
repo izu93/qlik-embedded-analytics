@@ -298,7 +298,10 @@ export class WritebackTableComponent {
   // Persists edited rows to backend and syncs localStorage edits
   saveChanges() {
     this.isSaving = true;
-    const changedRows = this.getChangedRows();
+    const changedRows = this.getChangedRows().map((row) => {
+      row._syncing = true; // Show spinner per row while syncing
+      return row;
+    });
     console.log('Saving to backend:', changedRows);
 
     // Validate edited rows before sending to backend
@@ -324,6 +327,7 @@ export class WritebackTableComponent {
         this.writebackData.forEach((row) => {
           if (row.changed) {
             row.changed = false;
+            row._syncing = false; // Remove spinner after success
             this.rowSaved.push(row['Account']);
           }
         });
