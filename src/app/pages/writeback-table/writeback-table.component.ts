@@ -6,7 +6,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
-import { environment } from '@environments/environment';
+import { environment } from 'environments/environment';
 
 @Component({
   selector: 'app-writeback-table',
