@@ -1,10 +1,15 @@
 <div class="p-6 bg dark:bg-gray-800 min-h-screen">
   <!-- Qlik Selection Bar and Filter Panel Embed -->
   <qlik-embed ui="analytics/selections" [attr.app-id]="appId"></qlik-embed>
-  <!-- Title Header -->
-  <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
-    Writeback Table — Churn Insights
-  </h2>
+
+  <!-- Filter Panel -->
+  <div class="filter-panel font-semibold mb-6 text-gray-800 dark:text-white">
+    <qlik-embed
+      ui="analytics/chart"
+      [attr.app-id]="appId"
+      [attr.object-id]="filterPanelId"
+    ></qlik-embed>
+  </div>
   <details
     class="mb-6 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-4"
   >
@@ -17,16 +22,11 @@
         Edit <strong>Model Feedback</strong> and
         <strong>Comments</strong> inline as needed.
       </li>
+      <li>Changes are preserved across pages, filters, and reloads.</li>
+      <li>Click <strong>Save All Changes</strong> to sync to backend.</li>
       <li>
-        Changes are preserved across pages, filters, and reloads.
-      </li>
-      <li>
-        Click <strong>Save All Changes</strong> to sync to backend — spinner
-        shows status.
-      </li>
-      <li>
-        Checkmarks (✔) indicate successful saves. "Syncing…" appears during
-        updates.
+        Saved rows will show a green checkmark. “Syncing…” appears while
+        saving.
       </li>
       <li>Use <strong>Reset</strong> to discard edits for a row.</li>
       <li>
@@ -35,13 +35,6 @@
       </li>
     </ul>
   </details>
-  <div class="filter-panel font-semibold mb-6 text-gray-800 dark:text-white">
-    <qlik-embed
-      ui="analytics/chart"
-      [attr.app-id]="appId"
-      [attr.object-id]="filterPanelId"
-    ></qlik-embed>
-  </div>
   <!-- <button
     (click)="confirmAndClearLocalCache()"
     class="text-xs text-red-600 ml-2 underline"
@@ -69,7 +62,31 @@
         ×
       </button>
     </div>
-
+    <!-- Optional: Column width adjustment controls -->
+    <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
+      <label class="flex items-center gap-1">
+        <span>Status Width:</span>
+        <input
+          type="range"
+          min="80"
+          max="300"
+          [(ngModel)]="statusWidth"
+          class="w-32"
+        />
+      </label>
+    </div>
+    <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
+      <label class="flex items-center gap-1">
+        <span>ARR Width:</span>
+        <input
+          type="range"
+          min="80"
+          max="300"
+          [(ngModel)]="ARRWidth"
+          class="w-32"
+        />
+      </label>
+    </div>
     <!-- CSV and JSON export buttons -->
     <div class="flex gap-2 ml-4">
       <button
@@ -85,32 +102,6 @@
         JSON
       </button>
     </div>
-  </div>
-
-  <!-- Optional: Column width adjustment controls -->
-  <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
-    <label class="flex items-center gap-1">
-      <span>Status Width:</span>
-      <input
-        type="range"
-        min="80"
-        max="300"
-        [(ngModel)]="statusWidth"
-        class="w-32"
-      />
-    </label>
-  </div>
-  <div class="flex gap-4 items-center text-xs text-gray-600 mb-2">
-    <label class="flex items-center gap-1">
-      <span>ARR Width:</span>
-      <input
-        type="range"
-        min="80"
-        max="300"
-        [(ngModel)]="ARRWidth"
-        class="w-32"
-      />
-    </label>
   </div>
 
   <!-- Loading spinner -->
@@ -376,7 +367,12 @@
               <ng-container
                 *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
               >
-                <span class="text-green-600 font-bold text-sm">✔</span>
+                <span
+                  class="text-green-600 font-bold text-sm checkmark-animate"
+                  *ngIf="rowSaved.includes(row['Account ID'])"
+                >
+                  ✔
+                </span>
               </ng-container>
               <ng-template #resetBtn>
                 <button
@@ -419,14 +415,25 @@
       >
         Next →
       </button>
-      <button
-        (click)="saveChanges()"
-        [disabled]="!hasChanges() || isSaving"
-        class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all"
-      >
-        <span *ngIf="!isSaving">Save All Changes</span>
-        <span *ngIf="isSaving">Saving...</span>
-      </button>
+      <div class="relative flex flex-col items-end">
+        <!-- Tooltip positioned absolutely above the button -->
+        <div
+          *ngIf="successMessage"
+          class="absolute bottom-full mb-2 right-0 bg-green-100 text-green-700 text-xs px-3 py-1 rounded shadow transition-opacity duration-300"
+        >
+          {{ successMessage }}
+        </div>
+
+        <!-- Save button -->
+        <button
+          (click)="saveChanges()"
+          [disabled]="!hasChanges() || isSaving"
+          class="ml-6 px-5 py-2 rounded text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all"
+        >
+          <span *ngIf="!isSaving">Save All Changes</span>
+          <span *ngIf="isSaving">Saving...</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

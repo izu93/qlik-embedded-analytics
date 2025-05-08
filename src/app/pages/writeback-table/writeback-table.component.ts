@@ -83,6 +83,7 @@ export class WritebackTableComponent {
   col: any;
   private previousRowHash: string = '';
   tableVisible = false;
+  successMessage = '';
 
   constructor(
     private qlikService: QlikAPIService,
@@ -148,7 +149,9 @@ export class WritebackTableComponent {
         const match = savedRows.find(
           (saved: any) => saved['Account'] === row['Account']
         );
-        return match ? { ...row, ...match, changed: false } : row;
+        return match
+          ? { ...row, ...match, changed: false, _syncing: false } //  force stop spinner
+          : row;
       });
       this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       console.log('Local storage edits merged into Qlik data');
@@ -175,7 +178,11 @@ export class WritebackTableComponent {
 
       const newHash = this.hashRows(freshRows);
       if (newHash !== this.hashRows(this.writebackData)) {
-        this.writebackData = freshRows.map((r) => ({ ...r, changed: false }));
+        this.writebackData = freshRows.map((r) => ({
+          ...r,
+          changed: false,
+          _syncing: false,
+        }));
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
       }
 
@@ -298,6 +305,7 @@ export class WritebackTableComponent {
   // Persists edited rows to backend and syncs localStorage edits
   saveChanges() {
     this.isSaving = true;
+    this.showSuccessMessage('Changes saved successfully!');
     const changedRows = this.getChangedRows().map((row) => {
       row._syncing = true; // Show spinner per row while syncing
       return row;
@@ -322,13 +330,19 @@ export class WritebackTableComponent {
       .then(() => {
         // Mark rows as saved
         this.originalData = JSON.parse(JSON.stringify(this.writebackData));
-        this.rowSaved = [];
+        setTimeout(() => {
+          this.rowSaved = [];
+        }, 1000); // 2 seconds delay for checkmark visibility
 
         this.writebackData.forEach((row) => {
           if (row.changed) {
-            row.changed = false;
-            row._syncing = false; // Remove spinner after success
-            this.rowSaved.push(row['Account']);
+            // Keep syncing for 1.5 seconds before showing check
+            setTimeout(() => {
+              row.changed = false;
+              row._syncing = false;
+              delete row._syncing; // clean up before localStorage save
+              this.rowSaved.push(row['Account']);
+            }, 1000);
           }
         });
 
@@ -462,5 +476,12 @@ export class WritebackTableComponent {
 
   ngOnDestroy(): void {
     clearInterval(this.selectionPollInterval);
+  }
+
+  private showSuccessMessage(msg: string) {
+    this.successMessage = msg;
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 1200);
   }
 }
