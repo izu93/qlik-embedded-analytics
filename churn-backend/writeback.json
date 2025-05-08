@@ -158,5 +158,21 @@
     "UpdatedBy": "Karthik Burra",
     "Comments": "nsooeadasssadasssdsasssssssssasssssassdsssssssssssssssssssssssss",
     "_syncing": true
+  },
+  {
+    "URL": "https://qlikcrm.lightning.force.com/lightning/r/Account/0013z00002hp0YkAAI/view",
+    "Account": "Advance Magazine Publishers Inc. d/b/a Condé Nast",
+    "Renewal Qtr": "Q4",
+    "Overall Renewal Risk": "0.11%",
+    "Account Health Risk": "Very Unlikely",
+    "SaaS Adoption Risk": "Unlikely",
+    "Prob of Churn": "Unlikely",
+    "ARR": "$ 549,467",
+    "changed": true,
+    "_syncing": true,
+    "Comments": "xxx",
+    "UpdatedAt": "5/08/2025, 02:20:28 AM",
+    "UpdatedBy": "Karthik Burra",
+    "Status": "Approve"
   }
 ]
