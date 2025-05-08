@@ -298,9 +298,25 @@ export class WritebackTableComponent {
   // Persists edited rows to backend and syncs localStorage edits
   saveChanges() {
     this.isSaving = true;
-    const changedRows = this.getChangedRows();
+    const changedRows = this.getChangedRows().map((row) => {
+      row._syncing = true; // Show spinner per row while syncing
+      return row;
+    });
     console.log('Saving to backend:', changedRows);
 
+    // Validate edited rows before sending to backend
+    const invalidRows = changedRows.filter((row) => {
+      return !row.Status || (row.Comments && row.Comments.length > 300);
+    });
+
+    if (invalidRows.length > 0) {
+      alert(
+        'Please fix validation issues:\n- Status is required\n- Comments must be under 300 characters'
+      );
+      this.isSaving = false;
+      return;
+    }
+    // Backend save logic
     this.qlikService
       .saveToBackend(changedRows)
       .then(() => {
@@ -311,11 +327,13 @@ export class WritebackTableComponent {
         this.writebackData.forEach((row) => {
           if (row.changed) {
             row.changed = false;
+            row._syncing = false; // Remove spinner after success
             this.rowSaved.push(row['Account']);
           }
         });
 
         // Merge with localStorage instead of replacing completely
+        //Sync localStorage with updated rows
         const existing = JSON.parse(
           localStorage.getItem('writebackData') || '[]'
         );

@@ -1,11 +1,40 @@
 <div class="p-6 bg dark:bg-gray-800 min-h-screen">
+  <!-- Qlik Selection Bar and Filter Panel Embed -->
+  <qlik-embed ui="analytics/selections" [attr.app-id]="appId"></qlik-embed>
   <!-- Title Header -->
   <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-white">
     Writeback Table — Churn Insights
   </h2>
-  <!-- Qlik Selection Bar and Filter Panel Embed -->
-  <qlik-embed ui="analytics/selections" [attr.app-id]="appId"></qlik-embed>
-
+  <details
+    class="mb-6 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-4"
+  >
+    <summary class="cursor-pointer font-semibold text-gray-800 dark:text-white">
+      ℹ️ How to use this writeback table
+    </summary>
+    <ul class="mt-3 list-disc pl-5 leading-relaxed">
+      <li>Use the Qlik filters below to narrow the visible account list.</li>
+      <li>
+        Edit <strong>Model Feedback</strong> and
+        <strong>Comments</strong> inline as needed.
+      </li>
+      <li>
+        Changes are preserved across pages, filters, and reloads.
+      </li>
+      <li>
+        Click <strong>Save All Changes</strong> to sync to backend — spinner
+        shows status.
+      </li>
+      <li>
+        Checkmarks (✔) indicate successful saves. "Syncing…" appears during
+        updates.
+      </li>
+      <li>Use <strong>Reset</strong> to discard edits for a row.</li>
+      <li>
+        Export any visible data to <code>.csv</code> or <code>.json</code> as
+        needed.
+      </li>
+    </ul>
+  </details>
   <div class="filter-panel font-semibold mb-6 text-gray-800 dark:text-white">
     <qlik-embed
       ui="analytics/chart"
@@ -311,32 +340,53 @@
             </td>
           </ng-container>
 
-          <!-- Comments column with textarea for comments -->
-          <td class="px-4 py-2 border-r border-gray-200">
-            <input
-              type="text"
-              [(ngModel)]="row['Comments']"
-              (ngModelChange)="markChanged(row, 'Comments')"
-              class="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:text-white"
-              placeholder="Enter Comments"
-            />
+          <!-- Comments column with textarea and sync spinner -->
+          <td class="px-4 py-2 border-r border-gray-200 relative">
+            <div class="flex items-center gap-2 align-middle">
+              <input
+                type="text"
+                [(ngModel)]="row['Comments']"
+                (ngModelChange)="markChanged(row, 'Comments')"
+                class="w-full px-2 py-1 text-xs border rounded dark:bg-gray-700 dark:text-white"
+                [class.opacity-70]="row._syncing"
+                placeholder="Enter Comments"
+                [disabled]="row._syncing"
+              />
+
+              <!-- Spinner placed right next to Comments input -->
+              <div
+                *ngIf="row._syncing"
+                class="animate-spin h-5 w-5 border-2 border-t-blue-600 border-gray-200 rounded-full"
+                title="Saving..."
+              ></div>
+            </div>
           </td>
 
           <!-- Reset button column -->
+          <!-- Reset button column -->
           <td class="px-4 py-2 border-r border-gray-200 text-center">
-            <ng-container
-              *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
-            >
-              <span class="text-green-600 font-bold text-sm">✔</span>
-            </ng-container>
-            <ng-template #resetBtn>
-              <button
-                (click)="resetRow(row)"
-                [disabled]="!row.changed"
-                class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
+            <ng-container *ngIf="row._syncing; else checkOrReset">
+              <!-- Show syncing indicator -->
+              <span class="text-blue-500 text-xs animate-pulse"
+                >Syncing...</span
               >
-                Reset
-              </button>
+            </ng-container>
+
+            <ng-template #checkOrReset>
+              <ng-container
+                *ngIf="rowSaved.includes(row['Account ID']); else resetBtn"
+              >
+                <span class="text-green-600 font-bold text-sm">✔</span>
+              </ng-container>
+              <ng-template #resetBtn>
+                <button
+                  (click)="resetRow(row)"
+                  [disabled]="!row.changed"
+                  class="text-xs px-3 py-1 rounded border border-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40"
+                >
+                  Reset
+                </button>
+              </ng-template>
             </ng-template>
           </td>
         </tr>
