@@ -17,7 +17,11 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
-    "baseUrl": "src" // This is required for absolute imports to work
+    "baseUrl": "src", // This is required for absolute imports to work
+    "paths": {
+    "@environments/*": ["environments/*"]
+    } 
+
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
