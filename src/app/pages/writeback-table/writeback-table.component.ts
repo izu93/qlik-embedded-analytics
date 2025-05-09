@@ -6,7 +6,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
-import { environment } from '../../../environments/environment';
+//import { environment } from '../../../environments/environment'; //for dev
+import { environment } from '../../../environments/environment.prod'; //for prod
 
 @Component({
   selector: 'app-writeback-table',
@@ -77,8 +78,10 @@ export class WritebackTableComponent {
   originalData: any[] = [];
 
   // Qlik object references
-  readonly appId = environment.qlik.appId;
-  readonly objectId = environment.qlik.objectId;
+  //readonly appId = environment.qlik.appId;//dev
+  //readonly objectId = environment.qlik.objectId;//dev
+  readonly appId = environment.qlik.appId; //prod
+  readonly objectId = environment.qlik.objectId; //prod
   data: any;
   col: any;
   private previousRowHash: string = '';
