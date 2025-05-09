@@ -1,28 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" data-beasties-container>
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
     <title>ChurnAnalyticsDashboard</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--  <meta
       http-equiv="Content-Security-Policy"
       content="frame-ancestors https://karthikburra93.qlikcloud.com;"
     /> -->
     <!--  <meta name="ngrok-skip-browser-warning" content="true" /> -->
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <!-- prod -->
-    <script
-      crossorigin="anonymous"
-      type="application/javascript"
-      src="https://cdn.jsdelivr.net/npm/@qlik/embed-web-components@1/dist/index.min.js"
-      data-host="karthikburra93.us.qlikcloud.com"
-      data-client-id="0fbd47217ee6d5d02dc80e005d2a715a"
-      data-redirect-uri="https://qlik-embedded-analytics-git-main-kburra193s-projects.vercel.app/assets/oauth-callback.html"
-      data-access-token-storage="session"
-      data-auto-redirect="true"
-    ></script>
+    <script crossorigin="anonymous" type="application/javascript" src="https://cdn.jsdelivr.net/npm/@qlik/embed-web-components@1/dist/index.min.js" data-host="karthikburra93.us.qlikcloud.com" data-client-id="0fbd47217ee6d5d02dc80e005d2a715a" data-redirect-uri="https://qlik-embedded-analytics-git-main-kburra193s-projects.vercel.app/assets/oauth-callback.html" data-access-token-storage="session" data-auto-redirect="true"></script>
     <!-- prod -->
     <!--- dev -->
     <!-- <script
@@ -36,102 +27,8 @@
       data-auto-redirect="true"
     ></script> -->
     <!--/dev-->
-    <style>
-      *,
-      :before,
-      :after {
-        box-sizing: border-box;
-        border-width: 0;
-        border-style: solid;
-        border-color: #e5e7eb;
-      }
-      :before,
-      :after {
-        --tw-content: "";
-      }
-      html {
-        line-height: 1.5;
-        -webkit-text-size-adjust: 100%;
-        -moz-tab-size: 4;
-        tab-size: 4;
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
-          "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol,
-          "Noto Color Emoji";
-        font-feature-settings: normal;
-        font-variation-settings: normal;
-      }
-      body {
-        margin: 0;
-        line-height: inherit;
-      }
-      *,
-      :before,
-      :after {
-        --tw-border-spacing-x: 0;
-        --tw-border-spacing-y: 0;
-        --tw-translate-x: 0;
-        --tw-translate-y: 0;
-        --tw-rotate: 0;
-        --tw-skew-x: 0;
-        --tw-skew-y: 0;
-        --tw-scale-x: 1;
-        --tw-scale-y: 1;
-        --tw-pan-x: ;
-        --tw-pan-y: ;
-        --tw-pinch-zoom: ;
-        --tw-scroll-snap-strictness: proximity;
-        --tw-gradient-from-position: ;
-        --tw-gradient-via-position: ;
-        --tw-gradient-to-position: ;
-        --tw-ordinal: ;
-        --tw-slashed-zero: ;
-        --tw-numeric-figure: ;
-        --tw-numeric-spacing: ;
-        --tw-numeric-fraction: ;
-        --tw-ring-inset: ;
-        --tw-ring-offset-width: 0px;
-        --tw-ring-offset-color: #fff;
-        --tw-ring-color: rgb(59 130 246 / 0.5);
-        --tw-ring-offset-shadow: 0 0 #0000;
-        --tw-ring-shadow: 0 0 #0000;
-        --tw-shadow: 0 0 #0000;
-        --tw-shadow-colored: 0 0 #0000;
-        --tw-blur: ;
-        --tw-brightness: ;
-        --tw-contrast: ;
-        --tw-grayscale: ;
-        --tw-hue-rotate: ;
-        --tw-invert: ;
-        --tw-saturate: ;
-        --tw-sepia: ;
-        --tw-drop-shadow: ;
-        --tw-backdrop-blur: ;
-        --tw-backdrop-brightness: ;
-        --tw-backdrop-contrast: ;
-        --tw-backdrop-grayscale: ;
-        --tw-backdrop-hue-rotate: ;
-        --tw-backdrop-invert: ;
-        --tw-backdrop-opacity: ;
-        --tw-backdrop-saturate: ;
-        --tw-backdrop-sepia: ;
-      }
-    </style>
-    <link
-      rel="stylesheet"
-      href="styles-CFOCZFA7.css"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript><link rel="stylesheet" href="styles-CFOCZFA7.css" /></noscript>
-  </head>
+  <style>*,:before,:after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}:before,:after{--tw-content:""}html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,"Apple Color Emoji","Segoe UI Emoji",Segoe UI Symbol,"Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal}body{margin:0;line-height:inherit}*,:before,:after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / .5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: }</style><link rel="stylesheet" href="styles-CFOCZFA7.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-CFOCZFA7.css"></noscript></head>
   <body>
     <app-root></app-root>
-    <link rel="modulepreload" href="chunk-64FWRGRL.js" /><link
-      rel="modulepreload"
-      href="chunk-EQDQRRRY.js"
-    />
-    <script src="polyfills-FFHMD2TL.js" type="module"></script>
-    <script src="main-EGUBQ5C6.js" type="module"></script>
-  </body>
+  <link rel="modulepreload" href="chunk-64FWRGRL.js"><link rel="modulepreload" href="chunk-EQDQRRRY.js"><script src="polyfills-FFHMD2TL.js" type="module"></script><script src="main-TCTCRJZ3.js" type="module"></script></body>
 </html>

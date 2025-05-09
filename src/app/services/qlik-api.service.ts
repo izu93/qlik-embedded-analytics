@@ -3,7 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { auth } from '@qlik/api';
 import { openAppSession } from '@qlik/api/qix';
 import { HostConfig } from '@qlik/api/auth';
-import { environment } from '../../environments/environment';
+//import { environment } from '../../environments/environment';//dev
+import { environment } from '../../environments/environment.prod'; //prod
 import { BehaviorSubject } from 'rxjs';
 
 // Extend the Window interface to include the 'x' property
@@ -22,7 +23,15 @@ export class QlikAPIService {
   // Boolean flag to detect if code is running in the browser
   private isBrowser: boolean;
 
-  // Qlik host configuration (OAuth2 based) pulled from environment variables
+  // Qlik host configuration (OAuth2 based) pulled from environment variables (dev)
+  /*   private qlikConfig: HostConfig = {
+    authType: 'oauth2',
+    host: environment.qlik.host,
+    clientId: environment.qlik.clientId,
+    redirectUri: environment.qlik.redirectUri,
+    accessTokenStorage: 'session', // Store access token in sessionStorage
+  }; */
+  // Qlik host configuration (OAuth2 based) pulled from environment variables (prod)
   private qlikConfig: HostConfig = {
     authType: 'oauth2',
     host: environment.qlik.host,
@@ -51,20 +60,18 @@ export class QlikAPIService {
     const key = Object.keys(sessionStorage).find(
       (k) => k.includes('access-token') && sessionStorage.getItem(k)
     );
-  
+
     // Check if the key is undefined
     if (key === undefined) {
       console.warn('Access token key is undefined.');
       return null;
     }
-  
+
     console.log('Access Token Key:', key);
     console.log('Access Token Value:', sessionStorage.getItem(key));
-  
+
     return sessionStorage.getItem(key);
   }
-  
-  
 
   /**
    * Connects to a Qlik Sense app and fetches rows from a visual object (hypercube).
