@@ -6,8 +6,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QlikAPIService } from '../../services/qlik-api.service';
-//import { environment } from '../../../environments/environment'; //for dev
-import { environment } from '../../../environments/environment.prod'; //for prod
+import { environment } from '../../../environments/environment'; //for dev and prod both, Angular CLI replaces environment.ts with environment.prod.ts automatically during ng build --configuration production
+//import { environment } from '../../../environments/environment.prod'; //for prod
 
 @Component({
   selector: 'app-writeback-table',
