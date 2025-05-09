@@ -3,8 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { auth } from '@qlik/api';
 import { openAppSession } from '@qlik/api/qix';
 import { HostConfig } from '@qlik/api/auth';
-//import { environment } from '../../environments/environment';//dev
-import { environment } from '../../environments/environment.prod'; //prod
+import { environment } from '../../environments/environment'; //for dev and prod both, Angular CLI replaces environment.ts with environment.prod.ts automatically during ng build --configuration production
+//import { environment } from '../../environments/environment.prod'; //prod
 import { BehaviorSubject } from 'rxjs';
 
 // Extend the Window interface to include the 'x' property
