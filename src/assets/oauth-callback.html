@@ -16,19 +16,36 @@
     <meta charset="UTF-8" />
     <title>Qlik OAuth Callback</title>
     <script>
-      // Parse the query parameters in the URL
+      // Check if token is available in URL
       const params = new URLSearchParams(window.location.search);
-      const code = params.get("code"); // Fetch the authorization code
+      const code = params.get("code");
 
+      // If we have a code, set it to sessionStorage
       if (code) {
-        // If the code is found, store it in sessionStorage
-        sessionStorage.setItem("qlik_access_token", code); // Store the code as token temporarily
+        sessionStorage.setItem("qlik_access_token", code);
         console.log("Access token stored:", code);
 
-        // Redirect the user to the home page (or dashboard)
-        window.location.href = "/"; // Replace with your app’s main page URL
+        // Redirect to the main application page
+        window.location.href = "/";
       } else {
-        console.error("No code parameter found in URL.");
+        // If no code is found, show an error message
+        console.error("No authorization code found");
+      }
+      // Retrieve the access token
+      const token = sessionStorage.getItem("qlik_access_token");
+
+      if (token) {
+        // Use the token to authenticate the Qlik API call
+        fetch("https://your-qlik-endpoint/api", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => console.log(data))
+          .catch((error) => console.error("API error:", error));
+      } else {
+        console.error("No access token found");
       }
     </script>
   </head>
