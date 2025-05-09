@@ -51,8 +51,20 @@ export class QlikAPIService {
     const key = Object.keys(sessionStorage).find(
       (k) => k.includes('access-token') && sessionStorage.getItem(k)
     );
-    return key ? sessionStorage.getItem(key) : null;
+  
+    // Check if the key is undefined
+    if (key === undefined) {
+      console.warn('Access token key is undefined.');
+      return null;
+    }
+  
+    console.log('Access Token Key:', key);
+    console.log('Access Token Value:', sessionStorage.getItem(key));
+  
+    return sessionStorage.getItem(key);
   }
+  
+  
 
   /**
    * Connects to a Qlik Sense app and fetches rows from a visual object (hypercube).
