@@ -18,13 +18,13 @@
     <script>
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      const token = params.get("access_token");
+      const token = params.get("code");
 
       if (token) {
         sessionStorage.setItem("qlik_access_token", token);
       }
       console.log("Access Token:", token);
-      window.location.href = "/";
+      //window.location.href = "/";
     </script>
   </head>
   <body>
