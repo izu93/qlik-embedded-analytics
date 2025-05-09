@@ -16,19 +16,57 @@
     <meta charset="UTF-8" />
     <title>Qlik OAuth Callback</title>
     <script>
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const token = params.get("code");
+      // Parse the query parameters in the URL (using window.location.search for query string)
+      const params = new URLSearchParams(window.location.search); // Use search instead of hash
+      const code = params.get("code"); // Fetch the authorization code from query parameters
 
-      if (token) {
-        sessionStorage.setItem("qlik_access_token", token);
+      if (code) {
+        console.log("Authorization code received:", code);
+
+        // If the code is found, make a POST request to Qlik's token endpoint to exchange it for an access token
+        const clientId = "ed20a3eb6fe8481f57214496f99bb7d8"; // Your Qlik OAuth Client ID
+        const redirectUri =
+          "https://qlik-embedded-analytics-git-main-kburra193s-projects.vercel.app/assets/oauth-callback.html"; // Your Redirect URI
+        //const clientSecret = 'your-client-secret';  // Your Qlik OAuth Client Secret (if required)
+        const tokenUrl = `https://karthikburra93.us.qlikcloud.com/oauth/token`; // Qlik OAuth token endpoint
+
+        // Prepare the POST data to exchange the code for an access token
+        const postData = new URLSearchParams({
+          grant_type: "authorization_code", // OAuth 2.0 grant type
+          code: code, // The authorization code we received
+          redirect_uri: redirectUri, // The same redirect URI as registered in Qlik
+          client_id: clientId, // Your client ID
+          //client_secret: clientSecret  // Your client secret (optional depending on Qlik configuration)
+        });
+
+        // Make the POST request to Qlik's OAuth endpoint
+        fetch(tokenUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: postData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Check if we received the access token
+            if (data.access_token) {
+              sessionStorage.setItem("qlik_access_token", data.access_token);
+              console.log("Access token stored:", data.access_token);
+              window.location.href = "/"; // Redirect to your main app page after storing the token
+            } else {
+              console.error("Access token not received:", data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error during OAuth token exchange:", error);
+          });
+      } else {
+        console.error("No authorization code found in the URL.");
       }
-      console.log("Access Token:", token);
-      //window.location.href = "/";
     </script>
   </head>
   <body>
     Redirecting...
   </body>
-</html> 
-
+</html>
