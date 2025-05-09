@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -9,7 +9,7 @@
       src="https://cdn.jsdelivr.net/npm/@qlik/embed-web-components/dist/oauth-callback.js"
     ></script>
   </head>
-</html> -->
+</html>
 <!-- <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -55,50 +55,4 @@
 </html>
  -->
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Qlik OAuth Callback</title>
-    <script>
-      // Check if token is available in URL
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const state = params.get("state");
-
-      console.log("Authorization Code: ", code);
-      console.log("State: ", state);
-
-      // If we have a code, set it to sessionStorage
-      if (code) {
-        sessionStorage.setItem("qlik_access_token", code);
-        console.log("Access token stored:", code);
-
-        // Redirect to the main application page after storing the token
-        window.location.href = "/";
-      } else {
-        // If no code is found, show an error message
-        console.error("No authorization code found");
-      }
-
-      const token = sessionStorage.getItem("qlik_access_token");
-      if (token) {
-        fetch("https://your-qlik-endpoint/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => console.log("API response:", data))
-          .catch((error) => console.error("API error:", error));
-      } else {
-        console.error("No access token found in session storage.");
-      }
-    </script>
-  </head>
-  <body>
-    Redirecting...
-  </body>
-</html>
+ 
